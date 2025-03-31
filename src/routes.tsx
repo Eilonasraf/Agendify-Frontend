@@ -1,0 +1,22 @@
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import Homepage from "./pages/HomePage";
+import MainFeedPage from "./pages/MainFeedPage";
+
+// This is the main App component that defines the routing for the application.
+const App = () => {
+  const { user } = useAuth();
+  return (
+      <Routes>
+        <Route path="/" element={!user ? <Homepage /> : <Navigate to="/dashboard" />} />
+        <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} />
+        <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/dashboard" />} />
+        <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
+        <Route path="/feed" element={<MainFeedPage />} />
+      </Routes>
+  );
+};
+
+export default App;
