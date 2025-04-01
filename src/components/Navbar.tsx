@@ -1,43 +1,43 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/navbar.css";
 
-// This is the Navbar component that displays the navigation bar at the top of the page
 const Navbar = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const location = useLocation();
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div className="container">
-        <Link className="navbar-brand" to="/">InspireHub</Link>
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-          <span className="navbar-toggler-icon"></span>
-        </button>
-        <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav ms-auto">
-            {user ? (
-              <>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/dashboard">Dashboard</Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/profile">Profile</Link>
-                </li>
-                <li>
-                <Link className="nav-link" to="/feed">Main feed</Link>
-                </li>
-              </>
-            ) : (
-              <>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/login">Login</Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/register">Register</Link>
-                </li>
-              </>
-            )}
-          </ul>
+    <nav className="navbar">
+      <div className="navbar-container">
+        <Link to="/" className="navbar-logo">Agendify</Link>
+
+        <ul className="navbar-links">
+          <li>
+            <Link to="/" className={`nav-link ${isActive("/") ? "active" : ""}`}>Home</Link>
+          </li>
+          <li>
+            <Link to="/about" className={`nav-link ${isActive("/about") ? "active" : ""}`}>About Us</Link>
+          </li>
+          <li>
+            <Link to="/pricing" className={`nav-link ${isActive("/pricing") ? "active" : ""}`}>Pricing</Link>
+          </li>
+        </ul>
+
+        <div className="navbar-auth">
+          {user ? (
+            <>
+              <Link to="/dashboard" className="btn">Dashboard</Link>
+              <Link to="/profile" className="btn">Profile</Link>
+              <button className="btn logout-btn" onClick={logout}>Logout</button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="btn">Sign in</Link>
+              <Link to="/register" className="btn">Sign up</Link>
+            </>
+          )}
         </div>
       </div>
     </nav>
