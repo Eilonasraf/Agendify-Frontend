@@ -1,10 +1,16 @@
-import React, { createContext, useState, useEffect, ReactNode, useContext } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useContext,
+} from "react";
 import apiClient from "../services/api-client";
 import { AxiosError } from "axios";
 
-const backend_url = import.meta.env.VITE_API_BASE_URL || 'https://node42.cs.colman.ac.il/api';
+// Types
+const backend_url = import.meta.env.VITE_API_BASE_URL;
 
-// User Interface
 export interface User {
   _id: string;
   username: string;
@@ -14,7 +20,6 @@ export interface User {
   refreshToken: string;
 }
 
-// AuthContext Type
 interface AuthContextType {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
@@ -25,8 +30,10 @@ interface AuthContextType {
   updateProfile: (updatedData: FormData) => Promise<void>;
 }
 
+// Create Context
 export const AuthContext = createContext<AuthContextType | null>(null);
 
+// Hook to use context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -35,133 +42,129 @@ export const useAuth = () => {
   return context;
 };
 
+// Provider Component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
+  // On load: check localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
+      const parsedUser: User = JSON.parse(storedUser);
 
-      // Ensure profile picture remains correct
-        if (parsedUser.profilePicture) {
-            if (parsedUser.profilePicture.includes("googleusercontent.com")) {
-                console.log("✅ Google Profile Picture Detected:", parsedUser.profilePicture);
-            } else if (parsedUser.profilePicture.startsWith("/uploads/")) {
-                parsedUser.profilePicture = `${backend_url}${parsedUser.profilePicture}`;
-            }
-        } else {
-            parsedUser.profilePicture = "/default-avatar.png"; // Default avatar fallback
+      if (parsedUser.profilePicture) {
+        if (parsedUser.profilePicture.includes("googleusercontent.com")) {
+          // keep as-is
+        } else if (parsedUser.profilePicture.startsWith("/uploads/")) {
+          parsedUser.profilePicture = `${backend_url}${parsedUser.profilePicture}`;
         }
+      } else {
+        parsedUser.profilePicture = "/default-avatar.png";
+      }
 
       setUser(parsedUser);
     }
   }, []);
 
+  // Login
   const login = async (username: string, password: string) => {
     try {
-        const response = await apiClient.post<User>("/auth/login", { username, password });
-        const userData = response.data;
+      const response = await apiClient.post<User>("/auth/login", { username, password });
+      const userData = response.data;
 
-        console.log("🔍 Debug: Received User Data:", userData); // Log full user data
-
-        // Ensure the profile picture URL is stored correctly
-        if (userData.profilePicture) {
-            if (userData.profilePicture.includes("googleusercontent.com")) {
-                console.log("🔍 Debug: Using Google Profile Picture:", userData.profilePicture);
-            } else if (!userData.profilePicture.startsWith("http")) {
-                userData.profilePicture = `${backend_url}${userData.profilePicture}`;
-            }
-        }
-
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
-
-        console.log("✅ Debug: User Data Stored in localStorage:", localStorage.getItem("user")); // Check storage
-    } catch (error) {
-        console.error("❌ Login failed:", error);
-        throw new Error("Login failed");
-    }
-};
-
-  // Refresh Token Function
-  const refreshAccessToken = async (): Promise<string | null> => {
-    try {
-      if (!user?.refreshToken) {
-        console.warn("⚠️ No refresh token available");
-        logout();
-        return null;
+      if (userData.profilePicture && !userData.profilePicture.startsWith("http")) {
+        userData.profilePicture = `${backend_url}${userData.profilePicture}`;
       }
 
-      const response = await apiClient.post<{ accessToken: string }>("/auth/refresh-token", {
+      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData));
+    } catch {
+      throw new Error("Login failed");
+    }
+  };
+
+  // Register
+  const register = async (formData: FormData) => {
+    try {
+      await apiClient.post("/auth/register", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      window.location.href = "/login";
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      throw new Error(
+        (axiosError.response?.data as { message: string })?.message || "Registration failed"
+      );
+    }
+  };
+
+  // Update Profile
+  const updateProfile = async (updatedData: FormData) => {
+    if (!user) return;
+
+    // eslint-disable-next-line no-useless-catch
+    try {
+      const res = await apiClient.put(`/auth/update-profile/${user._id}`, updatedData, {
+        headers: { Authorization: `JWT ${user.accessToken}` },
+      });
+
+      const updatedUser: User = res.data;
+
+      if (updatedUser.profilePicture && !updatedUser.profilePicture.startsWith("http")) {
+        updatedUser.profilePicture = `${backend_url}${updatedUser.profilePicture}`;
+      }
+
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Refresh Token
+  const refreshAccessToken = async (): Promise<string | null> => {
+    if (!user?.refreshToken) {
+      logout();
+      return null;
+    }
+
+    try {
+      const res = await apiClient.post<{ accessToken: string }>("/auth/refresh-token", {
         token: user.refreshToken,
       });
 
-      const newAccessToken = response.data.accessToken;
-      setUser((prevUser) => prevUser ? { ...prevUser, accessToken: newAccessToken } : null);
+      const newAccessToken = res.data.accessToken;
+      const updatedUser = { ...user, accessToken: newAccessToken };
 
-      localStorage.setItem("user", JSON.stringify({ ...user, accessToken: newAccessToken }));
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      console.log("🔄 Access token refreshed:", newAccessToken);
       return newAccessToken;
-    } catch (error) {
-      console.error("❌ Failed to refresh token:", error);
+    } catch {
       logout();
       return null;
     }
   };
 
-  // Register Function
-  const register = async (formData: FormData) => {
-    try {
-      const response = await apiClient.post("/auth/register", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      console.log("✅ Registration successful:", response.data);
-      window.location.href = "/login"; // Redirect to login after success
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      console.error("❌ Registration failed:", axiosError.response?.data || axiosError);
-      throw new Error((axiosError.response?.data as { message: string })?.message || "Registration failed");
-    }
-  };
-
-  // Update Profile Function
-  const updateProfile = async (updatedData: FormData): Promise<void> => {
-    if (!user) return;
-
-    try {
-        const res = await apiClient.put(`/auth/update-profile/${user._id}`, updatedData, {
-            headers: { Authorization: `JWT ${user.accessToken}` },
-        });
-
-        const updatedUser: User = res.data;
-
-        // Ensure profile picture URL is absolute
-        if (updatedUser.profilePicture && !updatedUser.profilePicture.startsWith("http")) {
-            updatedUser.profilePicture = `${backend_url}${updatedUser.profilePicture}`;
-        }
-
-        setUser(updatedUser);
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-
-        console.log("✅ Profile updated successfully:", updatedUser);
-    } catch (error) {
-        console.error("❌ Failed to update profile:", error);
-        throw error;
-    }
-};
-
-  // Logout Function
+  // Logout
   const logout = () => {
     localStorage.removeItem("user");
     setUser(null);
-    console.log("🔴 Logged out successfully");
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, register, logout, refreshAccessToken, updateProfile }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        login,
+        register,
+        logout,
+        refreshAccessToken,
+        updateProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

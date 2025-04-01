@@ -1,4 +1,4 @@
-
+/* === Reset & Core === */
 * {
   margin: 0;
   padding: 0;
@@ -6,27 +6,41 @@
 }
 
 body {
-  font-family: "Arial", sans-serif;
-  background-color: #f8f9fa;
-  color: #333;
-  line-height: 1.6;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #0c064f;
+  color: #ffffff;
   min-height: 100vh;
+  line-height: 1.6;
 }
 
+/* === Container === */
 .container {
   max-width: 1100px;
   margin: auto;
-  padding: 20px;
+  padding: 2rem;
 }
 
+/* === Typography === */
 h1, h2, h3, h4, h5, h6 {
   font-weight: bold;
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
+  color: #da84f5;
 }
 
-button {
+p {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* === Buttons === */
+button, .btn {
+  font-family: inherit;
+  font-weight: bold;
+  padding: 10px 20px;
+  border-radius: 25px;
+  border: none;
+  transition: all 0.3s ease;
   cursor: pointer;
-  transition: background 0.3s ease;
 }
 
 button:disabled {
@@ -34,65 +48,47 @@ button:disabled {
   cursor: not-allowed;
 }
 
-.navbar {
-  background-color: #007bff;
-  padding: 10px 0;
-}
-
-.navbar a {
-  color: white !important;
-  font-weight: bold;
-}
-
-.navbar .btn-outline-light:hover {
-  background-color: white;
-  color: #007bff;
-}
-
-.form-control {
-  border-radius: 5px;
-  padding: 10px;
-  margin-bottom: 10px;
+/* === Inputs === */
+input, .form-control {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  color: white;
   width: 100%;
+  margin-bottom: 1rem;
+  outline: none;
 }
 
-.form-control:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+input:focus, .form-control:focus {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 10px rgba(218, 132, 245, 0.5);
 }
 
+/* === Card === */
 .card {
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+  padding: 2rem;
+  margin: 2rem auto;
 }
 
+/* === Footer === */
 .footer {
-  background-color: #343a40;
+  background-color: #1a1a2e;
   color: white;
   text-align: center;
-  padding: 15px;
-  margin-top: 30px;
-  position: fixed;
-  width: 100%;
-  bottom: 0;
+  padding: 1rem;
+  margin-top: 2rem;
 }
 
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 20px;
-  background: #fff;
-  border-bottom: 1px solid #ddd;
+/* === Links === */
+a {
+  color: #da84f5;
+  text-decoration: none;
 }
 
-.navbar-logo {
-  width: 150px;
-  height: auto;
-}
-
-.auth-logo {
-  display: block;
-  margin: 0 auto;
-  width: 120px;
+a:hover {
+  text-decoration: underline;
 }

@@ -1,22 +1,29 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
+
+// Public Pages
+import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import Homepage from "./pages/HomePage";
-import MainFeedPage from "./pages/MainFeedPage";
+import AboutPage from "./pages/AboutPage";
+import PricingPage from "./pages/PricingPage";
 
-// This is the main App component that defines the routing for the application.
-const App = () => {
+const AppRoutes = () => {
   const { user } = useAuth();
+
   return (
-      <Routes>
-        <Route path="/" element={!user ? <Homepage /> : <Navigate to="/dashboard" />} />
-        <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} />
-        <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/dashboard" />} />
-        <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
-        <Route path="/feed" element={<MainFeedPage />} />
-      </Routes>
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<HomePage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/feed" />} />
+      <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/feed" />} />
+
+      {/* Catch-all */}
+      <Route path="*" element={<Navigate to={user ? "/feed" : "/login"} />} />
+    </Routes>
   );
 };
 
-export default App;
+export default AppRoutes;
