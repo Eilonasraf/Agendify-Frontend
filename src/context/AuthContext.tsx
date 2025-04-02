@@ -8,9 +8,20 @@ import React, {
 import apiClient from "../services/api-client";
 import { AxiosError } from "axios";
 
-// Types
-const backend_url = import.meta.env.VITE_API_BASE_URL;
+// Utility function to safely format profile picture URLs
+const formatProfilePictureUrl = (url: string | undefined): string => {
+  const backend = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") || "http://localhost:4040";
 
+  if (!url) return "/default-avatar.png";
+  if (url.startsWith("http")) return url;
+
+  // Fix malformed 'undefined/uploads/...'
+  const cleanUrl = url.replace(/^undefined/, "");
+  const normalized = cleanUrl.startsWith("/") ? cleanUrl : `/${cleanUrl}`;
+  return `${backend}${normalized}`;
+};
+
+// Types
 export interface User {
   _id: string;
   username: string;
@@ -51,17 +62,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const parsedUser: User = JSON.parse(storedUser);
-
-      if (parsedUser.profilePicture) {
-        if (parsedUser.profilePicture.includes("googleusercontent.com")) {
-          // keep as-is
-        } else if (parsedUser.profilePicture.startsWith("/uploads/")) {
-          parsedUser.profilePicture = `${backend_url}${parsedUser.profilePicture}`;
-        }
-      } else {
-        parsedUser.profilePicture = "/default-avatar.png";
-      }
-
+      parsedUser.profilePicture = formatProfilePictureUrl(parsedUser.profilePicture);
       setUser(parsedUser);
     }
   }, []);
@@ -71,10 +72,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const response = await apiClient.post<User>("/auth/login", { username, password });
       const userData = response.data;
-
-      if (userData.profilePicture && !userData.profilePicture.startsWith("http")) {
-        userData.profilePicture = `${backend_url}${userData.profilePicture}`;
-      }
+      userData.profilePicture = formatProfilePictureUrl(userData.profilePicture);
 
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
@@ -89,8 +87,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await apiClient.post("/auth/register", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      window.location.href = "/login";
     } catch (error) {
       const axiosError = error as AxiosError;
       throw new Error(
@@ -110,10 +106,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       const updatedUser: User = res.data;
-
-      if (updatedUser.profilePicture && !updatedUser.profilePicture.startsWith("http")) {
-        updatedUser.profilePicture = `${backend_url}${updatedUser.profilePicture}`;
-      }
+      updatedUser.profilePicture = formatProfilePictureUrl(updatedUser.profilePicture);
 
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));

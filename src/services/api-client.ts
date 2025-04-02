@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 
 export { CanceledError };
 
-const backend_url = import.meta.env.VITE_API_BASE_URL;
+const backend_url = import.meta.env.VITE_API_BASE_URL || "http://localhost:4040/api";
 console.log("url: " + backend_url);
 
 // Set base URL for API requests
