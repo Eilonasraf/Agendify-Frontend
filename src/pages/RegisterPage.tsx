@@ -21,6 +21,16 @@ const registerSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters long" }),
 });
 
+// ✅ Format the profile picture URL to avoid "undefined/uploads/..." issue
+const formatProfilePictureUrl = (url: string): string => {
+  const backend = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") || "http://localhost:4040";
+  if (!url) return "/default-avatar.png";
+  if (url.startsWith("http")) return url;
+  const cleanUrl = url.replace(/^undefined/, "");
+  const normalized = cleanUrl.startsWith("/") ? cleanUrl : `/${cleanUrl}`;
+  return `${backend}${normalized}`;
+};
+
 const RegisterPage = () => {
   const { setUser } = useAuth();
   const navigate = useNavigate();
@@ -30,8 +40,9 @@ const RegisterPage = () => {
   const [password, setPassword] = useState("");
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(defaultAvatar);
-  const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<{ username?: string; email?: string; password?: string }>({});
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const previewImage = profilePicture ? URL.createObjectURL(profilePicture) : selectedAvatar;
 
@@ -71,7 +82,6 @@ const RegisterPage = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage("");
 
     if (!validateInputs()) return;
 
@@ -93,16 +103,34 @@ const RegisterPage = () => {
       });
 
       if (response.status === 201) {
-        setMessage("✅ Registration successful! Redirecting...");
-        setTimeout(() => navigate("/login"), 1500);
+        setSuccessMessage("✅ Registration successful! Logging you in...");
+        setErrorMessage("");
+
+        await new Promise((res) => setTimeout(res, 1000));
+
+        const loginResponse = await apiClient.post("/auth/login", {
+          username,
+          password,
+        });
+
+        const userData = loginResponse.data;
+
+        // ✅ Fix the profile picture path right after login
+        userData.profilePicture = formatProfilePictureUrl(userData.profilePicture);
+
+        localStorage.setItem("user", JSON.stringify(userData));
+        setUser(userData);
+
+        setSuccessMessage("✅ Logged in! Redirecting to your dashboard...");
+        setTimeout(() => navigate("/dashboard"), 2000);
       } else {
-        setMessage(response.data.message || "❌ Registration failed");
+        setErrorMessage(response.data.message || "❌ Registration failed");
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        setMessage(error.response?.data?.message || "❌ Registration failed");
+        setErrorMessage(error.response?.data?.message || "❌ Registration failed");
       } else {
-        setMessage("An unexpected error occurred");
+        setErrorMessage("❌ An unexpected error occurred");
       }
     }
   };
@@ -120,7 +148,8 @@ const RegisterPage = () => {
       const res = await googleSignin(credentialResponse);
       localStorage.setItem("user", JSON.stringify(res));
       setUser(res);
-      navigate("/dashboard");
+      setSuccessMessage("✅ Google login successful! Redirecting...");
+      setTimeout(() => navigate("/dashboard"), 2000);
     } catch (error) {
       console.error("Google login failed", error);
     }
@@ -172,10 +201,17 @@ const RegisterPage = () => {
           </div>
 
           <button type="submit" className="btn btn-primary">Register</button>
+
+          {successMessage && (
+            <div className="alert alert-success text-center mt-3">{successMessage}</div>
+          )}
+          {errorMessage && (
+            <div className="alert alert-danger text-center mt-2">{errorMessage}</div>
+          )}
         </form>
 
-        {message && <p className={`mt-3 ${message.startsWith("✅") ? "text-success" : "text-danger"}`}>{message}</p>}
         <p className="mt-3">Already have an account? <Link to="/login">Login here</Link></p>
+
         <GoogleLogin onSuccess={onGoogleLoginSuccess} onError={onGoogleLoginError} theme="outline" size="large" />
       </div>
     </div>

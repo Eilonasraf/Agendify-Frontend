@@ -7,6 +7,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AboutPage from "./pages/AboutPage";
 import PricingPage from "./pages/PricingPage";
+import DashboardPage from "./pages/DashboardPage";
 
 const AppRoutes = () => {
   const { user } = useAuth();
@@ -17,11 +18,14 @@ const AppRoutes = () => {
       <Route path="/" element={<HomePage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/pricing" element={<PricingPage />} />
-      <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/feed" />} />
-      <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/feed" />} />
 
-      {/* Catch-all */}
-      <Route path="*" element={<Navigate to={user ? "/feed" : "/login"} />} />
+      {/* Auth Routes */}
+      <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} />
+      <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/dashboard" />} />
+      <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/login" />} />
+
+      {/* Catch-all: Redirect to dashboard if logged in, otherwise to login */}
+      <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
     </Routes>
   );
 };

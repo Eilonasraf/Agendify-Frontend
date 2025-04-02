@@ -1,12 +1,18 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/navbar.css";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = () => {
+    logout();
+    navigate("/"); // Redirect to homepage after logout
+  };
 
   return (
     <nav className="navbar">
@@ -30,7 +36,7 @@ const Navbar = () => {
             <>
               <Link to="/dashboard" className="btn">Dashboard</Link>
               <Link to="/profile" className="btn">Profile</Link>
-              <button className="btn logout-btn" onClick={logout}>Logout</button>
+              <button className="btn" onClick={handleLogout}>Logout</button>
             </>
           ) : (
             <>
