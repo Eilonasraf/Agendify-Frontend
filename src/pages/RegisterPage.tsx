@@ -21,7 +21,6 @@ const registerSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters long" }),
 });
 
-// ✅ Format the profile picture URL to avoid "undefined/uploads/..." issue
 const formatProfilePictureUrl = (url: string): string => {
   const backend = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") || "http://localhost:4040";
   if (!url) return "/default-avatar.png";

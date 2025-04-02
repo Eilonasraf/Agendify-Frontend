@@ -13,21 +13,11 @@ const DashboardPage = () => {
     if (url.startsWith("http")) return url;
 
     const cleanPath = url.startsWith("/") ? url : `/${url}`;
-    const fullUrl = `${backend_url}${cleanPath}`;
-    console.log("Generated image URL:", fullUrl);
-    return fullUrl;
+    return `${backend_url}${cleanPath}`;
   };
 
   useEffect(() => {
-    const raw = localStorage.getItem("user");
-    console.log("🔍 localStorage.getItem('user'):", raw);
-
-    if (user) {
-      console.log("✅ useAuth() user object:", user);
-      console.log("🖼 profilePicture value:", user.profilePicture);
-    } else {
-      console.warn("⚠️ No user in context");
-    }
+    // Optional side effect here for usage in the future
   }, [user]);
 
   return (
