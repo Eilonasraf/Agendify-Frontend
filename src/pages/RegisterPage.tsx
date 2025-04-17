@@ -18,11 +18,15 @@ const registerSchema = z.object({
       message: "Username must contain both letters and numbers",
     }),
   email: z.string().email({ message: "Invalid email format" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters long" }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters long" }),
 });
 
 const formatProfilePictureUrl = (url: string): string => {
-  const backend = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") || "http://localhost:4040";
+  const backend =
+    import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") ||
+    "http://localhost:3000";
   if (!url) return "/default-avatar.png";
   if (url.startsWith("http")) return url;
   const cleanUrl = url.replace(/^undefined/, "");
@@ -38,12 +42,20 @@ const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
-  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(defaultAvatar);
-  const [errors, setErrors] = useState<{ username?: string; email?: string; password?: string }>({});
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(
+    defaultAvatar
+  );
+  const [errors, setErrors] = useState<{
+    username?: string;
+    email?: string;
+    password?: string;
+  }>({});
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const previewImage = profilePicture ? URL.createObjectURL(profilePicture) : selectedAvatar;
+  const previewImage = profilePicture
+    ? URL.createObjectURL(profilePicture)
+    : selectedAvatar;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -61,7 +73,9 @@ const RegisterPage = () => {
   const getAvatarFile = async (avatarUrl: string): Promise<File> => {
     const response = await fetch(avatarUrl);
     const blob = await response.blob();
-    const name = avatarUrl.includes("male") ? "male-avatar.png" : "female-avatar.png";
+    const name = avatarUrl.includes("male")
+      ? "male-avatar.png"
+      : "female-avatar.png";
     return new File([blob], name, { type: "image/png" });
   };
 
@@ -115,7 +129,9 @@ const RegisterPage = () => {
         const userData = loginResponse.data;
 
         // ✅ Fix the profile picture path right after login
-        userData.profilePicture = formatProfilePictureUrl(userData.profilePicture);
+        userData.profilePicture = formatProfilePictureUrl(
+          userData.profilePicture
+        );
 
         localStorage.setItem("user", JSON.stringify(userData));
         setUser(userData);
@@ -127,7 +143,9 @@ const RegisterPage = () => {
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        setErrorMessage(error.response?.data?.message || "❌ Registration failed");
+        setErrorMessage(
+          error.response?.data?.message || "❌ Registration failed"
+        );
       } else {
         setErrorMessage("❌ An unexpected error occurred");
       }
@@ -142,7 +160,9 @@ const RegisterPage = () => {
     return response.data;
   };
 
-  const onGoogleLoginSuccess = async (credentialResponse: CredentialResponse) => {
+  const onGoogleLoginSuccess = async (
+    credentialResponse: CredentialResponse
+  ) => {
     try {
       const res = await googleSignin(credentialResponse);
       localStorage.setItem("user", JSON.stringify(res));
@@ -162,14 +182,32 @@ const RegisterPage = () => {
         <h2 className="register-title">Create Your Account</h2>
 
         <div className="profile-picture-container">
-          <img src={previewImage || ""} alt="Profile Preview" className="profile-picture" />
+          <img
+            src={previewImage || ""}
+            alt="Profile Preview"
+            className="profile-picture"
+          />
         </div>
 
         <div className="avatar-selection">
           <h4>Choose an Avatar (Optional)</h4>
           <div className="avatar-options">
-            <img src={maleAvatar} alt="Male Avatar" className={`avatar-option ${selectedAvatar === maleAvatar ? "selected" : ""}`} onClick={() => handleAvatarSelect(maleAvatar)} />
-            <img src={femaleAvatar} alt="Female Avatar" className={`avatar-option ${selectedAvatar === femaleAvatar ? "selected" : ""}`} onClick={() => handleAvatarSelect(femaleAvatar)} />
+            <img
+              src={maleAvatar}
+              alt="Male Avatar"
+              className={`avatar-option ${
+                selectedAvatar === maleAvatar ? "selected" : ""
+              }`}
+              onClick={() => handleAvatarSelect(maleAvatar)}
+            />
+            <img
+              src={femaleAvatar}
+              alt="Female Avatar"
+              className={`avatar-option ${
+                selectedAvatar === femaleAvatar ? "selected" : ""
+              }`}
+              onClick={() => handleAvatarSelect(femaleAvatar)}
+            />
           </div>
         </div>
 
@@ -177,41 +215,81 @@ const RegisterPage = () => {
           <label htmlFor="profile-picture" className="upload-button">
             <i className="fas fa-upload"></i> Upload Profile Picture
           </label>
-          <input type="file" id="profile-picture" className="d-none" onChange={handleFileChange} accept="image/*" />
+          <input
+            type="file"
+            id="profile-picture"
+            className="d-none"
+            onChange={handleFileChange}
+            accept="image/*"
+          />
         </div>
 
         <form onSubmit={handleRegister} className="register-form">
           <div className="form-group">
             <label className="form-label">Username</label>
-            <input type="text" className={`form-control ${errors.username ? "is-invalid" : ""}`} value={username} onChange={(e) => setUsername(e.target.value)} />
-            {errors.username && <div className="invalid-feedback">{errors.username}</div>}
+            <input
+              type="text"
+              className={`form-control ${errors.username ? "is-invalid" : ""}`}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            {errors.username && (
+              <div className="invalid-feedback">{errors.username}</div>
+            )}
           </div>
 
           <div className="form-group">
             <label className="form-label">Email</label>
-            <input type="email" className={`form-control ${errors.email ? "is-invalid" : ""}`} value={email} onChange={(e) => setEmail(e.target.value)} />
-            {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+            <input
+              type="email"
+              className={`form-control ${errors.email ? "is-invalid" : ""}`}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            {errors.email && (
+              <div className="invalid-feedback">{errors.email}</div>
+            )}
           </div>
 
           <div className="form-group">
             <label className="form-label">Password</label>
-            <input type="password" className={`form-control ${errors.password ? "is-invalid" : ""}`} value={password} onChange={(e) => setPassword(e.target.value)} />
-            {errors.password && <div className="invalid-feedback">{errors.password}</div>}
+            <input
+              type="password"
+              className={`form-control ${errors.password ? "is-invalid" : ""}`}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            {errors.password && (
+              <div className="invalid-feedback">{errors.password}</div>
+            )}
           </div>
 
-          <button type="submit" className="btn btn-primary">Register</button>
+          <button type="submit" className="btn btn-primary">
+            Register
+          </button>
 
           {successMessage && (
-            <div className="alert alert-success text-center mt-3">{successMessage}</div>
+            <div className="alert alert-success text-center mt-3">
+              {successMessage}
+            </div>
           )}
           {errorMessage && (
-            <div className="alert alert-danger text-center mt-2">{errorMessage}</div>
+            <div className="alert alert-danger text-center mt-2">
+              {errorMessage}
+            </div>
           )}
         </form>
 
-        <p className="mt-3">Already have an account? <Link to="/login">Login here</Link></p>
+        <p className="mt-3">
+          Already have an account? <Link to="/login">Login here</Link>
+        </p>
 
-        <GoogleLogin onSuccess={onGoogleLoginSuccess} onError={onGoogleLoginError} theme="outline" size="large" />
+        <GoogleLogin
+          onSuccess={onGoogleLoginSuccess}
+          onError={onGoogleLoginError}
+          theme="outline"
+          size="large"
+        />
       </div>
     </div>
   );

@@ -3,7 +3,8 @@ import { useAuth } from "../context/AuthContext";
 
 export { CanceledError };
 
-const backend_url = import.meta.env.VITE_API_BASE_URL || "http://localhost:4040/api";
+const backend_url =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 console.log("url: " + backend_url);
 
 // Set base URL for API requests
@@ -37,7 +38,9 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response, // Pass successful responses through
   async (error: AxiosError) => {
-    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as AxiosRequestConfig & {
+      _retry?: boolean;
+    };
 
     // If unauthorized (401) and we haven't retried yet, refresh token
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -50,9 +53,12 @@ apiClient.interceptors.response.use(
         const user = JSON.parse(storedUser);
         if (!user?.refreshToken) throw new Error("No refresh token available");
 
-        const refreshResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/refresh-token`, {
-          token: user.refreshToken,
-        });
+        const refreshResponse = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/auth/refresh-token`,
+          {
+            token: user.refreshToken,
+          }
+        );
 
         const newAccessToken = refreshResponse.data.accessToken;
 
@@ -61,7 +67,10 @@ apiClient.interceptors.response.use(
         localStorage.setItem("user", JSON.stringify(updatedUser));
 
         // Retry original request with new token
-        originalRequest.headers = { ...originalRequest.headers, Authorization: `JWT ${newAccessToken}` };
+        originalRequest.headers = {
+          ...originalRequest.headers,
+          Authorization: `JWT ${newAccessToken}`,
+        };
         return axios(originalRequest);
       } catch (refreshError) {
         console.error("❌ Refresh token failed, logging out:", refreshError);

@@ -10,7 +10,9 @@ import { AxiosError } from "axios";
 
 // Utility function to safely format profile picture URLs
 const formatProfilePictureUrl = (url: string | undefined): string => {
-  const backend = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") || "http://localhost:4040";
+  const backend =
+    import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") ||
+    "http://localhost:3000";
 
   if (!url) return "/default-avatar.png";
   if (url.startsWith("http")) return url;
@@ -54,7 +56,9 @@ export const useAuth = () => {
 };
 
 // Provider Component
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
 
   // On load: check localStorage
@@ -62,7 +66,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const parsedUser: User = JSON.parse(storedUser);
-      parsedUser.profilePicture = formatProfilePictureUrl(parsedUser.profilePicture);
+      parsedUser.profilePicture = formatProfilePictureUrl(
+        parsedUser.profilePicture
+      );
       setUser(parsedUser);
     }
   }, []);
@@ -70,9 +76,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Login
   const login = async (username: string, password: string) => {
     try {
-      const response = await apiClient.post<User>("/auth/login", { username, password });
+      const response = await apiClient.post<User>("/auth/login", {
+        username,
+        password,
+      });
       const userData = response.data;
-      userData.profilePicture = formatProfilePictureUrl(userData.profilePicture);
+      userData.profilePicture = formatProfilePictureUrl(
+        userData.profilePicture
+      );
 
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
@@ -90,7 +101,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error) {
       const axiosError = error as AxiosError;
       throw new Error(
-        (axiosError.response?.data as { message: string })?.message || "Registration failed"
+        (axiosError.response?.data as { message: string })?.message ||
+          "Registration failed"
       );
     }
   };
@@ -101,12 +113,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // eslint-disable-next-line no-useless-catch
     try {
-      const res = await apiClient.put(`/auth/update-profile/${user._id}`, updatedData, {
-        headers: { Authorization: `JWT ${user.accessToken}` },
-      });
+      const res = await apiClient.put(
+        `/auth/update-profile/${user._id}`,
+        updatedData,
+        {
+          headers: { Authorization: `JWT ${user.accessToken}` },
+        }
+      );
 
       const updatedUser: User = res.data;
-      updatedUser.profilePicture = formatProfilePictureUrl(updatedUser.profilePicture);
+      updatedUser.profilePicture = formatProfilePictureUrl(
+        updatedUser.profilePicture
+      );
 
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -123,9 +141,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     try {
-      const res = await apiClient.post<{ accessToken: string }>("/auth/refresh-token", {
-        token: user.refreshToken,
-      });
+      const res = await apiClient.post<{ accessToken: string }>(
+        "/auth/refresh-token",
+        {
+          token: user.refreshToken,
+        }
+      );
 
       const newAccessToken = res.data.accessToken;
       const updatedUser = { ...user, accessToken: newAccessToken };

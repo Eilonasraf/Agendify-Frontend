@@ -6,7 +6,9 @@ const DashboardPage = () => {
   const { user } = useAuth();
   const currentTime = new Date().toLocaleString();
 
-  const backend_url = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") || "http://localhost:4040";
+  const backend_url =
+    import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") ||
+    "http://localhost:3000";
 
   const getImageUrl = (url: string | undefined) => {
     if (!url) return "/default-avatar.png";
@@ -31,8 +33,12 @@ const DashboardPage = () => {
           />
         )}
 
-        <h2 className="dashboard-title">👋 Welcome{user ? `, ${user.username}` : ""}!</h2>
-        <p className="dashboard-text">This is your personal Agendify dashboard.</p>
+        <h2 className="dashboard-title">
+          👋 Welcome{user ? `, ${user.username}` : ""}!
+        </h2>
+        <p className="dashboard-text">
+          This is your personal Agendify dashboard.
+        </p>
         <p className="dashboard-timestamp">🕒 Logged in at: {currentTime}</p>
       </div>
     </div>
