@@ -2,30 +2,51 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 
 // Public Pages
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
+import HomePage     from "./pages/HomePage";
+import AboutPage    from "./pages/AboutPage";
+import PricingPage  from "./pages/PricingPage";
+import LoginPage    from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import AboutPage from "./pages/AboutPage";
-import PricingPage from "./pages/PricingPage";
+
+// Protected Pages
 import DashboardPage from "./pages/DashboardPage";
+import PromotePage   from "./pages/PromotePage";
 
 const AppRoutes = () => {
   const { user } = useAuth();
 
   return (
     <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<HomePage />} />
-      <Route path="/about" element={<AboutPage />} />
+      {/* Public */}
+      <Route path="/"        element={<HomePage />} />
+      <Route path="/about"   element={<AboutPage />} />
       <Route path="/pricing" element={<PricingPage />} />
 
-      {/* Auth Routes */}
-      <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} />
-      <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/dashboard" />} />
-      <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/login" />} />
+      {/* Auth */}
+      <Route
+        path="/login"
+        element={!user ? <LoginPage /> : <Navigate to="/dashboard" replace />}
+      />
+      <Route
+        path="/register"
+        element={!user ? <RegisterPage /> : <Navigate to="/dashboard" replace />}
+      />
 
-      {/* Catch-all: Redirect to dashboard if logged in, otherwise to login */}
-      <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
+      {/* Protected */}
+      <Route
+        path="/dashboard"
+        element={user ? <DashboardPage /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/promote"
+        element={user ? <PromotePage /> : <Navigate to="/login" replace />}
+      />
+
+      {/* Catch‑all */}
+      <Route
+        path="*"
+        element={<Navigate to={user ? "/dashboard" : "/login"} replace />}
+      />
     </Routes>
   );
 };
