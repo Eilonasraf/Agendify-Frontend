@@ -1,165 +1,194 @@
-// src/components/PromoteForm.tsx
-import React, { useState, FormEvent } from "react";
+import { useState, FormEvent } from "react";
+import "../styles/PromoteForm.css";
 
+// Hardcoded debate topics
 const TOPICS = [
-  "Food",
-  "Politics",
-  "Sport",
-  "Health",
-  "Technology",
-  "Other",
+  "Israeli-Palestinian Conflict",
+  "Abortion Access",
+  "AI Regulation",
+  "Climate Change",
+  "European Immigration",
 ] as const;
 
+// Subtopics as one‑sided propositions
 const SUBTOPICS: Record<string, string[]> = {
-  Politics: ["Vegetarianism", "Attitude towards Country", "Autonomous vehicles", "Other"],
-  Food: ["Vegan", "Organic", "Fast food", "Other"],
-  Sport: ["Football", "Basketball", "Running", "Other"],
-  Health: ["Mental health", "Nutrition", "Exercise", "Other"],
-  Technology: ["AI", "Web dev", "Cybersecurity", "Other"],
-  Other: ["Other"],
+  "Israeli-Palestinian Conflict": [
+    "Two-state solution",
+    "Israel sovereignty",
+    "Trump transfer plan",
+    "Israel self-defense",
+  ],
+  "Abortion Access": [
+    "State abortion bans should be enacted",
+    "Abortion is morally permissible",
+    "Parental consent should be required for minors",
+    "Expand abortion clinic access in rural areas",
+  ],
+  "AI Regulation": [
+    "Strict AI regulations should be enacted",
+    "Unregulated AI fosters innovation",
+    "AI surveillance poses privacy risks",
+    "Industry self‑regulation ensures AI safety",
+  ],
+  "Climate Change": [
+    "Carbon tax is necessary to reduce emissions",
+    "Renewable energy investment boosts economy",
+    "Climate policies stifle business growth",
+    "International agreements enforce emission targets",
+  ],
+  "European Immigration": [
+    "Open border policies strengthen economies",
+    "Strict border controls protect national security",
+    "Asylum procedures require simplification",
+    "Immigration enhances cultural diversity",
+  ],
 };
 
-// pick up your VITE env var (fallback to empty so TS is happy)
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 
 export default function PromoteForm() {
   const [topic, setTopic] = useState<string>("");
-  const [subtopics, setSubtopics] = useState<string[]>([]);
-  const [freeText, setFreeText] = useState("");
+  const [subtopic, setSubtopic] = useState<string>("");
+  const [stance, setStance] = useState<"in_favor" | "opposed" | "">("");
   const [tweetCount, setTweetCount] = useState(10);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const handleTopicChange = (t: string) => {
-    setTopic(t);
-    setSubtopics([]);
+  // grab user ID from localStorage
+  let currentUserId = "";
+  try {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const u = JSON.parse(stored);
+      currentUserId = u._id || "";
+    }
+    console.log("currentUserId", currentUserId);
+  } catch (error) {
+    // Silently handle localStorage or JSON parsing errors
+    // User will remain unauthenticated if data is invalid
+  }
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!topic || !subtopic || !stance) {
+      setMessage("❌ Please select topic, subtopic & stance.");
+      return;
+    }
+    setLoading(true);
+    setMessage(null);
+
+    const resp = await fetch(
+      `${API_BASE}/twitter/promote?count=${tweetCount}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic,
+          subtopics: [subtopic],
+          stance,
+          createdBy: currentUserId,
+        }),
+      }
+    );
+    const data = await resp.json().catch(() => null);
+    setMessage(
+      resp.ok ? `✅ ${data.message}` : `❌ ${data?.error || resp.statusText}`
+    );
+    setLoading(false);
   };
 
-  const toggleSubtopic = (s: string) =>
-    setSubtopics((prev) =>
-      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
-    );
-
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
-        setMessage(null)
-        
-        // ensure this is exactly where your Express router is mounted:
-        const url = `${API_BASE}/twitter/promote?count=${tweetCount}`
-        console.log('Calling promote at', url)
-
-        try {
-            const resp = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ topic, subtopics, freeText }),
-            })
-            const data = await resp.json().catch(() => null)
-        
-            if (!resp.ok) {
-            setMessage(`❌ ${data?.error || resp.statusText}`)
-            } else {
-            setMessage(`✅ ${data.message}`)
-            }
-        } finally {
-            setLoading(false)
-        }
-    }
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Topic */}
-      <div>
-        <label className="block font-medium mb-2">Topic</label>
-        <div className="flex flex-wrap gap-4">
+    <form onSubmit={handleSubmit} className="promote-form">
+      <fieldset className="section">
+        <legend>1. Topic</legend>
+        <div className="choices choices--vertical">
           {TOPICS.map((t) => (
-            <label key={t} className="inline-flex items-center">
+            <label key={t} className="choice">
               <input
                 type="radio"
                 name="topic"
                 value={t}
                 checked={topic === t}
-                onChange={() => handleTopicChange(t)}
-                className="mr-2"
+                onChange={() => {
+                  setTopic(t);
+                  setSubtopic("");
+                }}
               />
               {t}
             </label>
           ))}
         </div>
-      </div>
+      </fieldset>
 
-      {/* Subtopics */}
       {topic && (
-        <div>
-          <label className="block font-medium mb-2">Sub Topic</label>
-          <div className="flex flex-wrap gap-4">
+        <fieldset className="section">
+          <legend>2. Subtopic</legend>
+          <div className="choices choices--vertical">
             {SUBTOPICS[topic].map((st) => (
-              <label key={st} className="inline-flex items-center">
+              <label key={st} className="choice">
                 <input
-                  type="checkbox"
+                  type="radio"
+                  name="subtopic"
                   value={st}
-                  checked={subtopics.includes(st)}
-                  onChange={() => toggleSubtopic(st)}
-                  className="mr-2"
+                  checked={subtopic === st}
+                  onChange={() => setSubtopic(st)}
                 />
                 {st}
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
       )}
 
-      {/* Free text */}
-      <div>
-        <label className="block font-medium mb-2">
-          Free text (max 20 words)
-        </label>
-        <textarea
-          value={freeText}
-          onChange={(e) => setFreeText(e.target.value)}
-          maxLength={200}
-          rows={3}
-          className="w-full border rounded p-2"
-          placeholder="Briefly add what you want to talk about…"
-        />
-        <p className="text-sm text-gray-500 mt-1">
-          {freeText.split(/\s+/).filter(Boolean).length}/20 words
-        </p>
-      </div>
+      <fieldset className="section">
+        <legend>3. Stance</legend>
+        <div className="choices choices--vertical">
+          <label className="choice">
+            <input
+              type="radio"
+              name="stance"
+              value="in_favor"
+              checked={stance === "in_favor"}
+              onChange={() => setStance("in_favor")}
+            />
+            Support
+          </label>
+          <label className="choice">
+            <input
+              type="radio"
+              name="stance"
+              value="opposed"
+              checked={stance === "opposed"}
+              onChange={() => setStance("opposed")}
+            />
+            Oppose
+          </label>
+        </div>
+      </fieldset>
 
-      {/* Tweet count */}
-      <div>
-        <label className="block font-medium mb-2">
-          How many Tweets?
+      <div className="section">
+        <label htmlFor="count">
+          4. Tweets: <span className="count-label">{tweetCount}</span>
         </label>
         <input
+          id="count"
           type="range"
           min={10}
           max={100}
           step={10}
           value={tweetCount}
-          onChange={(e) => setTweetCount(Number(e.target.value))}
-          className="w-full"
+          onChange={(e) => setTweetCount(+e.target.value)}
         />
-        <p className="text-sm text-gray-600 mt-1">
-          {tweetCount} tweets
-        </p>
       </div>
 
-      {/* Submit */}
-      <div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
-        >
+      <div className="submit-section">
+        <button type="submit" disabled={loading}>
           {loading ? "Working…" : "Apply"}
         </button>
       </div>
 
-      {/* Result message */}
-      {message && <p className="mt-4 text-center text-black">{message}</p>}
+      {message && <div className="message">{message}</div>}
     </form>
   );
 }
