@@ -1,0 +1,100 @@
+/* src/styles/PromoteForm.css */
+.promote-form {
+  max-width: 800px; /* wider form */
+  margin: 2rem auto;
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font-family: sans-serif;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+  border: none;
+  padding: 0;
+}
+
+.section legend {
+  display: block;
+  text-align: left;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.choices--vertical {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.choice {
+  display: inline-flex; /* shrink to fit content */
+  align-items: center;
+  gap: 0.5rem;
+  background: #f7f7f7;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+  white-space: nowrap; /* keep text on one line */
+  width: max-content; /* width grows to fit content */
+}
+
+.choice input {
+  accent-color: #4f46e5;
+}
+
+.choice:hover {
+  background: #eef0ff;
+}
+
+#count {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.count-label {
+  font-weight: normal;
+  color: #555;
+}
+
+.submit-section {
+  text-align: center;
+}
+
+.submit-section button {
+  background: #4f46e5;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-section button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submit-section button:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.message {
+  margin-top: 1rem;
+  text-align: center;
+  font-weight: bold;
+}

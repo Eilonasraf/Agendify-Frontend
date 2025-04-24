@@ -64,12 +64,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   // On load: check localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const parsedUser: User = JSON.parse(storedUser);
-      parsedUser.profilePicture = formatProfilePictureUrl(
-        parsedUser.profilePicture
-      );
-      setUser(parsedUser);
+    try {
+      if (storedUser) {
+        const parsedUser: User = JSON.parse(storedUser);
+        parsedUser.profilePicture = formatProfilePictureUrl(
+          parsedUser.profilePicture
+        );
+        setUser(parsedUser);
+      }
+    } catch (e) {
+      console.error("Failed to parse user from localStorage:", e);
+      localStorage.removeItem("user");
     }
   }, []);
 
