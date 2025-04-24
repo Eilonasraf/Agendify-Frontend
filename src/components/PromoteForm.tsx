@@ -1,4 +1,5 @@
 import { useState, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/PromoteForm.css";
 
 // Hardcoded debate topics
@@ -54,6 +55,7 @@ export default function PromoteForm() {
   const [tweetCount, setTweetCount] = useState(10);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   // grab user ID from localStorage
   let currentUserId = "";
@@ -64,9 +66,8 @@ export default function PromoteForm() {
       currentUserId = u._id || "";
     }
     console.log("currentUserId", currentUserId);
-  } catch (error) {
+  } catch {
     // Silently handle localStorage or JSON parsing errors
-    // User will remain unauthenticated if data is invalid
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -75,27 +76,36 @@ export default function PromoteForm() {
       setMessage("❌ Please select topic, subtopic & stance.");
       return;
     }
+
     setLoading(true);
     setMessage(null);
 
-    const resp = await fetch(
-      `${API_BASE}/twitter/promote?count=${tweetCount}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          topic,
-          subtopics: [subtopic],
-          stance,
-          createdBy: currentUserId,
-        }),
+    try {
+      const resp = await fetch(
+        `${API_BASE}/twitter/promote?count=${tweetCount}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            topic,
+            subtopics: [subtopic],
+            stance,
+            createdBy: currentUserId,
+          }),
+        }
+      );
+
+      const data = await resp.json().catch(() => null);
+      if (!resp.ok) {
+        throw new Error(data?.error || resp.statusText);
       }
-    );
-    const data = await resp.json().catch(() => null);
-    setMessage(
-      resp.ok ? `✅ ${data.message}` : `❌ ${data?.error || resp.statusText}`
-    );
-    setLoading(false);
+
+      navigate("/promote/results", { state: { tweets: data.tweets } });
+    } catch (err) {
+      setMessage(`❌ ${err instanceof Error ? err.message : "An unknown error occurred"}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

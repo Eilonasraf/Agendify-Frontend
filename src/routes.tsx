@@ -11,6 +11,7 @@ import RegisterPage from "./pages/RegisterPage";
 // Protected Pages
 import DashboardPage from "./pages/DashboardPage";
 import PromotePage   from "./pages/PromotePage";
+import PromoteResultsPage from "./pages/PromoteResultsPage";
 
 const AppRoutes = () => {
   const { user } = useAuth();
@@ -40,6 +41,10 @@ const AppRoutes = () => {
       <Route
         path="/promote"
         element={user ? <PromotePage /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/promote/results"
+        element={user ? <PromoteResultsPage /> : <Navigate to="/login" replace />}
       />
 
       {/* Catch‑all */}
