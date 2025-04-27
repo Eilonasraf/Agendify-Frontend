@@ -36,15 +36,18 @@ const Navbar = () => {
               <Link to="/promote" className={`btn ${isActive("/promote") ? "active" : ""}`}>
                 Promote
               </Link>
+              <Link to="/promote/results" className={`btn ${isActive("/promote/results") ? "active" : ""}`}>
+                Results
+              </Link>
               <Link to="/dashboard" className={`btn ${isActive("/dashboard") ? "active" : ""}`}>
                 Dashboard
               </Link>
               <Link to="/profile" className={`btn ${isActive("/profile") ? "active" : ""}`}>
                 Profile
               </Link>
-              <button onClick={handleLogout} className="btn">
+              <Link to="/home" onClick={handleLogout} className={`btn ${isActive("/profile") ? "active" : ""}`}>
                 Logout
-              </button>
+              </Link>
             </>
           ) : (
             <>

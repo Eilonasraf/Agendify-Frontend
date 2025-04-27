@@ -1,5 +1,5 @@
-import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import TweetEmbed from "../components/TweetEmbed";
 import "../styles/PromoteResults.css";
 
@@ -13,20 +13,43 @@ type Tweet = {
 
 type LocationState = {
   tweets: Tweet[];
+  topic: string; // NEW: topic info
 };
 
 const PromoteResultsPage = () => {
   const location = useLocation();
-  const state = location.state as LocationState;
-  const tweets = state?.tweets || [];
+  const locationState = location.state as LocationState | null;
 
-  const [editedTweets, setEditedTweets] = useState<Tweet[]>(
-    tweets.map((tweet) => ({
-      ...tweet,
-      editedComment: tweet.responseComment || "",
-      liked: false,
-    }))
-  );
+  const [editedTweets, setEditedTweets] = useState<Tweet[]>([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  const topic = locationState?.topic || "Unknown Topic";
+
+  useEffect(() => {
+    let tweetsToLoad: Tweet[] = [];
+
+    if (locationState?.tweets?.length) {
+      tweetsToLoad = locationState.tweets;
+      localStorage.setItem("promoteResults", JSON.stringify(locationState.tweets));
+    } else {
+      const stored = localStorage.getItem("promoteResults");
+      if (stored) {
+        tweetsToLoad = JSON.parse(stored);
+      }
+    }
+
+    if (tweetsToLoad.length) {
+      setEditedTweets(
+        tweetsToLoad.map((tweet) => ({
+          ...tweet,
+          editedComment: tweet.responseComment || "",
+          liked: false,
+        }))
+      );
+    }
+    setLoading(false);
+  }, [locationState]);
 
   const handleEditChange = (index: number, value: string) => {
     const updated = [...editedTweets];
@@ -51,6 +74,17 @@ const PromoteResultsPage = () => {
       const result: { error?: string } = await response.json();
       if (response.ok) {
         alert("Reply posted!");
+
+        // Save promoted reply to localStorage
+        const stored = localStorage.getItem("promotedReplies");
+        const promotedReplies = stored ? JSON.parse(stored) : [];
+
+        promotedReplies.push({
+          tweetId: tweet.id,
+          topic: topic,
+        });
+
+        localStorage.setItem("promotedReplies", JSON.stringify(promotedReplies));
       } else {
         alert("Failed to post: " + result.error);
       }
@@ -60,7 +94,21 @@ const PromoteResultsPage = () => {
     }
   };
 
-  if (!tweets.length) {
+  const handleClearResults = () => {
+    localStorage.removeItem("promoteResults");
+    navigate("/promote-form");
+  };
+
+  if (loading) {
+    return (
+      <div className="tweet-loader">
+        <div className="spinner"></div>
+        <p>Loading tweets...</p>
+      </div>
+    );
+  }
+
+  if (!editedTweets.length) {
     return (
       <div className="results-container text-center">
         <h2>No tweets found 😢</h2>
@@ -72,6 +120,11 @@ const PromoteResultsPage = () => {
   return (
     <div className="results-container">
       <h1 className="results-title">🎯 Results - Based On My Selected Agenda</h1>
+      <div className="results-actions">
+        <button className="clear-button" onClick={handleClearResults}>
+          🔄 Start New Promotion
+        </button>
+      </div>
       <table className="results-table">
         <thead>
           <tr>
@@ -87,7 +140,10 @@ const PromoteResultsPage = () => {
             <tr key={tweet.id}>
               <td>{index + 1}</td>
               <td>
-                <TweetEmbed tweetId={tweet.id} />
+                <div className="tweet-embed-wrapper">
+                  <TweetEmbed tweetId={tweet.id} />
+                  <p className="tweet-text">{tweet.text}</p>
+                </div>
               </td>
               <td>
                 <button
