@@ -1,0 +1,153 @@
+.results-container {
+  padding: 2rem;
+  max-width: 100%;
+  background-color: white;
+  color: black;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.results-title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: black;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #1f1f4d;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.results-table th,
+.results-table td {
+  padding: 1rem;
+  text-align: center;
+  border: 1px solid #2a2a60;
+}
+
+.results-table th {
+  background-color: #292969;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.results-table td {
+  color: #ddd;
+}
+
+textarea {
+  width: 100%;
+  min-height: 80px;
+  background-color: #292969;
+  color: #fff;
+  border: 1px solid #444;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.like-button {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.like-button.liked {
+  color: red;
+}
+
+.like-button.unliked {
+  color: white;
+}
+
+.promote-button {
+  background-color: #e75480;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.promote-button:hover {
+  background-color: #d0456e;
+}
+
+/* Spinner */
+.tweet-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+  padding: 1rem;
+  min-height: 100px;
+}
+
+.tweet-loader .spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #aaa;
+  border-top: 3px solid #e75480;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tweet-error {
+  color: #ff6b6b;
+  padding: 1rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Extra for tweets */
+.tweet-embed-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tweet-text {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #ccc;
+  max-width: 300px;
+  text-align: center;
+  word-wrap: break-word;
+}
+
+.results-actions {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.clear-button {
+  background-color: transparent;
+  color: #e75480;
+  border: 2px solid #e75480;
+  padding: 0.5rem 1.2rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clear-button:hover {
+  background-color: #e75480;
+  color: white;
+}

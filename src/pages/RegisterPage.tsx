@@ -167,7 +167,7 @@ const RegisterPage = () => {
       const res = await googleSignin(credentialResponse);
       localStorage.setItem("user", JSON.stringify(res));
       setUser(res);
-      setSuccessMessage("✅ Google login successful! Redirecting...");
+      setSuccessMessage("✅ Google login successful! Redirecting to your dashboard...");
       setTimeout(() => navigate("/dashboard"), 2000);
     } catch (error) {
       console.error("Google login failed", error);

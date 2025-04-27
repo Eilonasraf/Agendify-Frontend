@@ -10,17 +10,10 @@ import { AxiosError } from "axios";
 
 // Utility function to safely format profile picture URLs
 const formatProfilePictureUrl = (url: string | undefined): string => {
-  const backend =
-    import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") ||
-    "http://localhost:3000";
-
   if (!url) return "/default-avatar.png";
   if (url.startsWith("http")) return url;
-
-  // Fix malformed 'undefined/uploads/...'
-  const cleanUrl = url.replace(/^undefined/, "");
-  const normalized = cleanUrl.startsWith("/") ? cleanUrl : `/${cleanUrl}`;
-  return `${backend}${normalized}`;
+  if (url.startsWith("/uploads")) return `${window.location.origin}${url}`;
+  return url;
 };
 
 // Types

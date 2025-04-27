@@ -1,5 +1,4 @@
 // src/pages/PromotePage.tsx
-import React, { useState } from "react";
 import PromoteForm from "../components/PromoteForm";
 
 export default function PromotePage() {

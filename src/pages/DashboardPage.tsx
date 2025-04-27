@@ -1,46 +1,56 @@
-import { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useEffect, useState } from "react";
+import TweetEmbed from "../components/TweetEmbed";
 import "../styles/dashboard.css";
+
+interface PromotedReply {
+  tweetId: string;
+  topic: string;
+}
 
 const DashboardPage = () => {
   const { user } = useAuth();
-  const currentTime = new Date().toLocaleString();
-
-  const backend_url =
-    import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") ||
-    "http://localhost:3000";
-
-  const getImageUrl = (url: string | undefined) => {
-    if (!url) return "/default-avatar.png";
-    if (url.startsWith("http")) return url;
-
-    const cleanPath = url.startsWith("/") ? url : `/${url}`;
-    return `${backend_url}${cleanPath}`;
-  };
+  const [promotedReplies, setPromotedReplies] = useState<PromotedReply[]>([]);
 
   useEffect(() => {
-    // Optional side effect here for usage in the future
-  }, [user]);
+    const stored = localStorage.getItem("promotedReplies");
+    if (stored) {
+      setPromotedReplies(JSON.parse(stored));
+    }
+  }, []);
+
+  // Group replies by topic
+  const groupedReplies: Record<string, PromotedReply[]> = {};
+  promotedReplies.forEach((reply) => {
+    if (!groupedReplies[reply.topic]) {
+      groupedReplies[reply.topic] = [];
+    }
+    groupedReplies[reply.topic].push(reply);
+  });
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-card">
-        {user?.profilePicture && (
-          <img
-            src={getImageUrl(user.profilePicture)}
-            alt="Profile"
-            className="dashboard-profile-picture"
-          />
-        )}
-
-        <h2 className="dashboard-title">
-          👋 Welcome{user ? `, ${user.username}` : ""}!
-        </h2>
-        <p className="dashboard-text">
-          This is your personal Agendify dashboard.
-        </p>
-        <p className="dashboard-timestamp">🕒 Logged in at: {currentTime}</p>
+      <div className="dashboard-header">
+        <h1>Welcome back{user ? `, ${user.username}` : ""}!</h1>
+        <p className="dashboard-subtitle">Your promoted tweets overview</p>
       </div>
+
+      {Object.keys(groupedReplies).length === 0 ? (
+        <p>No promoted tweets yet! 🚀</p>
+      ) : (
+        Object.entries(groupedReplies).map(([topic, replies]) => (
+          <div key={topic} className="topic-section">
+            <h2 className="topic-title">📚 {topic}</h2>
+            <div className="tweet-grid">
+              {replies.map((reply) => (
+                <div key={reply.tweetId} className="tweet-card">
+                  <TweetEmbed tweetId={reply.tweetId} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 };

@@ -9,8 +9,10 @@ import LoginPage    from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 
 // Protected Pages
-import DashboardPage from "./pages/DashboardPage";
+import ProfilePage from "./pages/ProfilePage";
 import PromotePage   from "./pages/PromotePage";
+import PromoteResultsPage from "./pages/PromoteResultsPage";
+import DashboardPage from "./pages/DashboardPage";
 
 const AppRoutes = () => {
   const { user } = useAuth();
@@ -34,12 +36,20 @@ const AppRoutes = () => {
 
       {/* Protected */}
       <Route
-        path="/dashboard"
-        element={user ? <DashboardPage /> : <Navigate to="/login" replace />}
+        path="/profile"
+        element={user ? <ProfilePage /> : <Navigate to="/login" replace />}
       />
       <Route
         path="/promote"
         element={user ? <PromotePage /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/dashboard"
+        element={user ? <DashboardPage /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/promote/results"
+        element={user ? <PromoteResultsPage /> : <Navigate to="/login" replace />}
       />
 
       {/* Catch‑all */}
