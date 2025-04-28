@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import TweetEmbed from "../components/TweetEmbed";
 import "../styles/PromoteResults.css";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+
 type Tweet = {
   id: string;
   text: string;
@@ -12,42 +14,42 @@ type Tweet = {
 };
 
 type LocationState = {
-  tweets: Tweet[];
-  topic: string; // NEW: topic info
+  tweets: {
+    tweets: Tweet[];
+    message?: string;
+  };
+  topic: string;
 };
 
-const PromoteResultsPage = () => {
+export default function PromoteResultsPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const locationState = location.state as LocationState | null;
 
-  const [editedTweets, setEditedTweets] = useState<Tweet[]>([]);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  // current userId
+  let currentUserId = "";
+  try {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const u = JSON.parse(stored);
+      currentUserId = u._id || "";
+    }
+  } catch {}
 
   const topic = locationState?.topic || "Unknown Topic";
+  const [editedTweets, setEditedTweets] = useState<Tweet[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let tweetsToLoad: Tweet[] = [];
-
-    if (locationState?.tweets?.length) {
-      tweetsToLoad = locationState.tweets;
-      localStorage.setItem("promoteResults", JSON.stringify(locationState.tweets));
-    } else {
-      const stored = localStorage.getItem("promoteResults");
-      if (stored) {
-        tweetsToLoad = JSON.parse(stored);
-      }
-    }
-
-    if (tweetsToLoad.length) {
-      setEditedTweets(
-        tweetsToLoad.map((tweet) => ({
-          ...tweet,
-          editedComment: tweet.responseComment || "",
-          liked: false,
-        }))
-      );
-    }
+    const resp = locationState?.tweets;
+    const arr: Tweet[] = resp?.tweets ?? [];
+    setEditedTweets(
+      arr.map((t) => ({
+        ...t,
+        editedComment: t.responseComment || "",
+        liked: false,
+      }))
+    );
     setLoading(false);
   }, [locationState]);
 
@@ -63,34 +65,21 @@ const PromoteResultsPage = () => {
     setEditedTweets(updated);
   };
 
-  const handlePostReply = async (tweet: Tweet) => {
+  const handlePostAllReplies = async () => {
     try {
-      const response = await fetch(`/api/replies/${tweet.id}/replies`, {
+      // send the full JSON object as received, plus user ID
+
+      await fetch(`${API_BASE}/twitter/postToX`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: tweet.editedComment }),
+        body: JSON.stringify({
+          tweets: locationState!.tweets.tweets,
+          twitterUserId: currentUserId,
+        }),
       });
 
-      const result: { error?: string } = await response.json();
-      if (response.ok) {
-        alert("Reply posted!");
-
-        // Save promoted reply to localStorage
-        const stored = localStorage.getItem("promotedReplies");
-        const promotedReplies = stored ? JSON.parse(stored) : [];
-
-        promotedReplies.push({
-          tweetId: tweet.id,
-          topic: topic,
-        });
-
-        localStorage.setItem("promotedReplies", JSON.stringify(promotedReplies));
-      } else {
-        alert("Failed to post: " + result.error);
-      }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      alert("Error posting reply: " + errorMessage);
+      alert(`❌ Failed to post replies: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -125,6 +114,7 @@ const PromoteResultsPage = () => {
           🔄 Start New Promotion
         </button>
       </div>
+
       <table className="results-table">
         <thead>
           <tr>
@@ -132,7 +122,6 @@ const PromoteResultsPage = () => {
             <th>Tweet</th>
             <th>Like?</th>
             <th>Automatic Reply</th>
-            <th>Promote</th>
           </tr>
         </thead>
         <tbody>
@@ -159,20 +148,16 @@ const PromoteResultsPage = () => {
                   onChange={(e) => handleEditChange(index, e.target.value)}
                 />
               </td>
-              <td>
-                <button
-                  onClick={() => handlePostReply(tweet)}
-                  className="promote-button"
-                >
-                  Promote
-                </button>
-              </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      <div className="results-actions">
+        <button className="post-button" onClick={handlePostAllReplies}>
+          📤 Post All Replies to X
+        </button>
+      </div>
     </div>
   );
-};
-
-export default PromoteResultsPage;
+}

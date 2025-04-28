@@ -99,7 +99,7 @@ export default function PromoteForm() {
       if (!resp.ok) {
         throw new Error(data?.error || resp.statusText);
       }
-
+      console.log("The data is", data);
       navigate("/promote/results", { state: { tweets: data.tweets } });
     } catch (err) {
       setMessage(`❌ ${err instanceof Error ? err.message : "An unknown error occurred"}`);
