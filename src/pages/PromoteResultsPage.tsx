@@ -1,163 +1,160 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import TweetEmbed from "../components/TweetEmbed";
 import "../styles/PromoteResults.css";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 
-type Tweet = {
+type TweetIn = {
   id: string;
-  text: string;
-  responseComment?: string;
-  editedComment?: string;
-  liked?: boolean;
+  responseComment?: any;  // we’ll safely unwrap it
+};
+
+type LocalTweet = {
+  id: string;
+  editedComment: string;
+  liked: boolean;
 };
 
 type LocationState = {
-  tweets: {
-    tweets: Tweet[];
-    message?: string;
-  };
+  tweets: { tweets: TweetIn[] };
   topic: string;
 };
 
 export default function PromoteResultsPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const locationState = location.state as LocationState | null;
+  const { tweets: navTweets, topic } =
+    (location.state as LocationState) || {
+      tweets: { tweets: [] },
+      topic: "",
+    };
 
-  // current userId
-  let currentUserId = "";
-  try {
-    const stored = localStorage.getItem("user");
-    if (stored) {
-      const u = JSON.parse(stored);
-      currentUserId = u._id || "";
+  // robust recursive unwrap
+  const unwrap = (r: any): string => {
+    if (r == null) return "";
+    if (typeof r === "string") return r;
+    if (r.comment !== undefined) return unwrap(r.comment);
+    const val = Object.values(r)[0];
+    return unwrap(val);
+  };
+
+  // 1) load Twitter embed script
+  useEffect(() => {
+    if (!(window as any).twttr) {
+      const s = document.createElement("script");
+      s.src = "https://platform.twitter.com/widgets.js";
+      s.async = true;
+      s.charset = "utf-8";
+      document.body.appendChild(s);
     }
-  } catch {}
+  }, []);
 
-  const topic = locationState?.topic || "Unknown Topic";
-  const [editedTweets, setEditedTweets] = useState<Tweet[]>([]);
+  // 2) seed our local tweets state
+  const [editedTweets, setEditedTweets] = useState<LocalTweet[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const resp = locationState?.tweets;
-    const arr: Tweet[] = resp?.tweets ?? [];
     setEditedTweets(
-      arr.map((t) => ({
-        ...t,
-        editedComment: t.responseComment || "",
+      navTweets.tweets.map((t) => ({
+        id: t.id,
+        editedComment: unwrap(t.responseComment),
         liked: false,
       }))
     );
     setLoading(false);
-  }, [locationState]);
+  }, [navTweets]);
 
-  const handleEditChange = (index: number, value: string) => {
-    const updated = [...editedTweets];
-    updated[index].editedComment = value;
-    setEditedTweets(updated);
+  // 3) re-run Twitter’s embed parser
+  useEffect(() => {
+    window.twttr?.widgets?.load?.();
+  }, [editedTweets]);
+
+  const toggleLike = (i: number) => {
+    const c = [...editedTweets];
+    c[i].liked = !c[i].liked;
+    setEditedTweets(c);
   };
-
-  const toggleLike = (index: number) => {
-    const updated = [...editedTweets];
-    updated[index].liked = !updated[index].liked;
-    setEditedTweets(updated);
+  const handleChange = (i: number, v: string) => {
+    const c = [...editedTweets];
+    c[i].editedComment = v;
+    setEditedTweets(c);
   };
+  const handleClear = () => navigate("/promote-form");
 
+  // 4) post back, sending editedComment as responseComment
   const handlePostAllReplies = async () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const payload = {
+      twitterUserId: user._id,
+      tweets: editedTweets.map((t) => ({
+        id: t.id,
+        responseComment: t.editedComment,
+      })),
+    };
     try {
-      // send the full JSON object as received, plus user ID
-
       await fetch(`${API_BASE}/twitter/postToX`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tweets: locationState!.tweets.tweets,
-          twitterUserId: currentUserId,
-        }),
+        body: JSON.stringify(payload),
       });
-
+      alert("✅ Posted all replies!");
     } catch (err) {
-      alert(`❌ Failed to post replies: ${err instanceof Error ? err.message : String(err)}`);
+      alert(`❌ Failed: ${err}`);
     }
   };
 
-  const handleClearResults = () => {
-    localStorage.removeItem("promoteResults");
-    navigate("/promote-form");
-  };
-
-  if (loading) {
+  if (loading) return <p>Loading tweets…</p>;
+  if (!editedTweets.length)
     return (
-      <div className="tweet-loader">
-        <div className="spinner"></div>
-        <p>Loading tweets...</p>
-      </div>
-    );
-  }
-
-  if (!editedTweets.length) {
-    return (
-      <div className="results-container text-center">
+      <div>
         <h2>No tweets found 😢</h2>
-        <p>Try submitting a promotion again.</p>
+        <button onClick={handleClear}>🔄 Start New Promotion</button>
       </div>
     );
-  }
 
   return (
     <div className="results-container">
-      <h1 className="results-title">🎯 Results - Based On My Selected Agenda</h1>
-      <div className="results-actions">
-        <button className="clear-button" onClick={handleClearResults}>
-          🔄 Start New Promotion
-        </button>
-      </div>
-
+      <h1>🎯 Results – Based On “{topic}”</h1>
+      <button onClick={handleClear}>🔄 Start New Promotion</button>
       <table className="results-table">
         <thead>
           <tr>
-            <th>Num</th>
+            <th>#</th>
             <th>Tweet</th>
             <th>Like?</th>
             <th>Automatic Reply</th>
           </tr>
         </thead>
         <tbody>
-          {editedTweets.map((tweet, index) => (
-            <tr key={tweet.id}>
-              <td>{index + 1}</td>
+          {editedTweets.map((t, idx) => (
+            <tr key={t.id}>
+              <td>{idx + 1}</td>
               <td>
-                <div className="tweet-embed-wrapper">
-                  <TweetEmbed tweetId={tweet.id} />
-                  <p className="tweet-text">{tweet.text}</p>
-                </div>
+                <blockquote className="twitter-tweet">
+                  <a href={`https://twitter.com/ffff/status/${t.id}`}></a>
+                </blockquote>
               </td>
               <td>
-                <button
-                  onClick={() => toggleLike(index)}
-                  className={`like-button ${tweet.liked ? "liked" : "unliked"}`}
+                <span
+                  className="like-icon"
+                  onClick={() => toggleLike(idx)}
                 >
-                  {tweet.liked ? "❤️" : "🤍"}
-                </button>
+                  {t.liked ? "❤️" : "🤍"}
+                </span>
               </td>
               <td>
                 <textarea
-                  value={tweet.editedComment}
-                  onChange={(e) => handleEditChange(index, e.target.value)}
+                  value={t.editedComment}
+                  onChange={(e) => handleChange(idx, e.target.value)}
+                  className="reply-textarea"
                 />
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-
-      <div className="results-actions">
-        <button className="post-button" onClick={handlePostAllReplies}>
-          📤 Post All Replies to X
-        </button>
-      </div>
+      <button onClick={handlePostAllReplies}>📤 Post All Replies</button>
     </div>
   );
 }
