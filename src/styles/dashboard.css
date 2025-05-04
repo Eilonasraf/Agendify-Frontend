@@ -1,49 +1,39 @@
-.dashboard-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem;
-    background: #0c064f;
-    min-height: 100vh;
-    color: white;
-  }
-  
-  .dashboard-header {
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-  
-  .dashboard-header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  .dashboard-subtitle {
-    font-size: 1.2rem;
-    color: #cccccc;
-  }
+.card {
+  position: relative;
+  background: #1e1b2e;
+  color: #fff;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
 
-  .topic-section {
-    margin-bottom: 2rem;
-    width: 100%;
-  }
-  
-  .topic-title {
-    font-size: 1.5rem;
-    color: #f0f0f0;
-    margin-bottom: 1rem;
-  }
-  
-  .tweet-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem;
-  }
-  
-  .tweet-card {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 1rem;
-    border-radius: 12px;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  }  
+.card:hover {
+  background: #6b5dfa;      /* very bright violet */
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+/* new header area to hold title + delete button */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+/* delete “✕” button */
+.delete-btn {
+  background: transparent;
+  border: none;
+  color: #f56565;         /* default red */
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.delete-btn:hover {
+  color: #ff7f7f;         /* ← brighter, or use any hex you want */
+}

@@ -1,0 +1,64 @@
+.new-cluster-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    padding: 2rem;
+  }
+  
+  .new-cluster-form {
+    background: #fff;
+    padding: 2rem;
+    border-radius: .5rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .new-cluster-form h1 {
+    margin-bottom: 1.5rem;
+    font-size: 1.75rem;
+    text-align: center;
+  }
+  
+  .new-cluster-form label {
+    display: block;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+  
+  .new-cluster-form input {
+    width: 100%;
+    padding: .5rem;
+    margin-top: .25rem;
+    border: 1px solid #ccc;
+    border-radius: .25rem;
+    font-size: 1rem;
+    color: #000;            /* ensure your text is black */
+  }
+  
+  .new-cluster-form input::placeholder {
+    color: #666;            /* nice grey for placeholder */
+  }
+  
+  .new-cluster-form .error {
+    color: #d9534f;
+    margin-bottom: 1rem;
+  }
+  
+  .new-cluster-form button {
+    width: 100%;
+    padding: .75rem;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: .25rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  
+  .new-cluster-form button:hover {
+    background: #0056b3;
+  }
+  
