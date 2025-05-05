@@ -37,8 +37,12 @@ export default function NewClusterPage() {
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || resp.statusText);
       navigate(`/clusters/${data.clusterId}`);
-    } catch (err: any) {
-      setError(`❌ ${err.message}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(`❌ ${err.message}`);
+      } else {
+        setError("❌ An unknown error occurred.");
+      }
     }
   };
 

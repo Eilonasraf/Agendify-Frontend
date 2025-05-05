@@ -1,37 +1,44 @@
 import { useEffect, useState } from "react";
-import { useNavigate }          from "react-router-dom";
-import "../styles/Dashboard.css";
-
-// locally extend Window so TS knows about twttr (if you ever embed tweets here)
-declare global {
-  interface Window {
-    twttr?: {
-      widgets?: {
-        load?: () => void;
-      };
-    };
-  }
-}
+import { useNavigate } from "react-router-dom";
+import "../styles/dashboard.css";
 
 type AgendaSummary = {
-  agendaId:    string;
-  title:       string;
+  agendaId: string;
+  title: string;
   tweetsCount: number;
-  createdAt:   string;
+  createdAt: string;
+};
+
+type TweetItem = {
+  replyTweetId: string;
+  originalTweetId: string;
+  originalTweetText: string;
+  responseComment: string;
+  createdAt: string;
+};
+
+type AgendaDetail = {
+  _id: string;
+  title: string;
+  prompt: string;
+  tweets: TweetItem[];
 };
 
 export default function DashboardPage() {
-  const [clusters, setClusters] = useState<AgendaSummary[]>([]);
-  const [loading,  setLoading]  = useState(true);
+  const [agendas, setAgendas] = useState<AgendaSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedAgenda, setSelectedAgenda] = useState<AgendaDetail | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
+
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     fetch(`${API_BASE}/clusters?userId=${user._id}`)
       .then((r) => r.json())
-      .then((data: AgendaSummary[]) => {
-        setClusters(data);
+      .then((data) => {
+        setAgendas(data);
         setLoading(false);
       })
       .catch((err) => {
@@ -41,56 +48,108 @@ export default function DashboardPage() {
   }, []);
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Delete this cluster forever?")) return;
+    if (!window.confirm("Delete this agenda forever?")) return;
     try {
-      const resp = await fetch(`${API_BASE}/clusters/${id}`, {
-        method: "DELETE",
-      });
+      const resp = await fetch(`${API_BASE}/clusters/${id}`, { method: "DELETE" });
       if (!resp.ok) throw new Error("Failed to delete");
-      // remove locally
-      setClusters((cls) => cls.filter((c) => c.agendaId !== id));
+      setAgendas((prev) => prev.filter((a) => a.agendaId !== id));
     } catch (err) {
       console.error(err);
-      alert("Could not delete cluster.");
+      alert("Could not delete agenda.");
     }
   };
 
-  if (loading) return <p>Loading your clusters…</p>;
+  const openAgendaModal = async (agendaId: string) => {
+    try {
+      const resp = await fetch(`${API_BASE}/clusters/${agendaId}`);
+      if (!resp.ok) throw new Error("Failed to load agenda");
+      const data: AgendaDetail = await resp.json();
+      setSelectedAgenda(data);
+      setModalOpen(true);
+    } catch (err) {
+      console.error(err);
+      alert("Could not load agenda.");
+    }
+  };
+
+  if (loading) return <p>Loading your agendas…</p>;
 
   return (
-    <div className="dashboard-container">
-      <h1>My Clusters</h1>
-      <div className="grid">
-        {clusters.map((c) => (
-          <div key={c.agendaId} className="card">
-            <div className="card-header">
-              <h2 onClick={() => navigate(`/clusters/${c.agendaId}`)}>
-                {c.title}
-              </h2>
-              <button
-                className="delete-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete(c.agendaId);
-                }}
-                aria-label="Delete cluster"
-              >
-                ✕
-              </button>
+    <div className="dashboard-container white-bg">
+      <h1 className="main-title">🗂️ My Agendas</h1>
+
+      {agendas.length === 0 && (
+        <p className="empty-message">
+          You haven’t created any agendas yet. Click the button below to get started.
+        </p>
+      )}
+
+      <div className="agenda-grid">
+        {agendas.map((agenda) => (
+          <div className="agenda-card" key={agenda.agendaId}>
+            <div className="agenda-pill">{agenda.title}</div>
+            <div className="agenda-body">
+              <p className="agenda-date">🕒 Start: {new Date(agenda.createdAt).toLocaleDateString()}</p>
+              <div className="card-actions">
+                <button className="delete-btn" onClick={() => handleDelete(agenda.agendaId)}>🗑️</button>
+                <button className="stats-btn" onClick={() => navigate(`/clusters/${agenda.agendaId}/stats`)}>📊</button>
+                <button className="open-btn" onClick={() => openAgendaModal(agenda.agendaId)}>➡️</button>
+              </div>
             </div>
-            <p>{c.tweetsCount} replies</p>
-            <small>{new Date(c.createdAt).toLocaleString()}</small>
           </div>
         ))}
-
-        {/* + New cluster card */}
-        <div
-          className="card new-card"
-          onClick={() => navigate("/clusters/new")}
-        >
-          <h2>+ New Cluster</h2>
-        </div>
       </div>
+
+      <div className="new-agenda-button-container">
+        <button
+          className="new-agenda-btn"
+          onClick={() => navigate("/clusters/new")}
+          >
+          + New Agenda
+        </button>
+      </div>
+
+      {modalOpen && selectedAgenda && (
+        <div className="modal-overlay" onClick={() => setModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setModalOpen(false)}>✖</button>
+            <h2>{selectedAgenda.title}</h2>
+            <p className="prompt-text">{selectedAgenda.prompt}</p>
+            <div className="modal-table-container">
+              <table className="modal-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Original Tweet</th>
+                    <th>Reply</th>
+                    <th>Date</th>
+                    <th>Link</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedAgenda.tweets.map((t, i) => (
+                    <tr key={t.replyTweetId}>
+                      <td>{i + 1}</td>
+                      <td>{t.originalTweetText}</td>
+                      <td>{t.responseComment}</td>
+                      <td>{new Date(t.createdAt).toLocaleString()}</td>
+                      <td>
+                        <a
+                          href={`https://twitter.com/i/web/status/${t.replyTweetId}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          🌐
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

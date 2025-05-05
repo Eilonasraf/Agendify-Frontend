@@ -11,6 +11,7 @@ import NewClusterPage from "./pages/NewClusterPage";
 import PromotionClusterPage from "./pages/PromotionClusterPage";
 import PromoteForm from "./components/PromoteForm";
 import PromoteResultsPage from "./pages/PromoteResultsPage";
+import StatsPage from "./pages/StatsPage";
 
 export default function AppRoutes() {
   const { user } = useAuth();
@@ -56,6 +57,11 @@ export default function AppRoutes() {
       <Route
         path="/clusters/:agendaId/promote/results"
         element={user ? <PromoteResultsPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+      path="/clusters/:agendaId/stats"
+      element={<StatsPage />}
       />
 
       <Route

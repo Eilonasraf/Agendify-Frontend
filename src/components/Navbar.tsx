@@ -33,12 +33,6 @@ const Navbar = () => {
         <div className="navbar-auth">
           {user ? (
             <>
-              <Link to="/promote" className={`btn ${isActive("/promote") ? "active" : ""}`}>
-                Promote
-              </Link>
-              <Link to="/promote/results" className={`btn ${isActive("/promote/results") ? "active" : ""}`}>
-                Results
-              </Link>
               <Link to="/dashboard" className={`btn ${isActive("/dashboard") ? "active" : ""}`}>
                 Dashboard
               </Link>
