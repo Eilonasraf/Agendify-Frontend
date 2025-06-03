@@ -14,20 +14,20 @@ export default function NewClusterPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!topic.trim()) {
-      setError("❌ Please enter a cluster title (2–3 words).");
+      setError("❌ Please enter an agenda title (2–3 words).");
       return;
     }
 
     const stored = localStorage.getItem("user");
     const userId = stored ? JSON.parse(stored)._id : null;
     if (!userId) {
-      setError("❌ You must be logged in to create a cluster.");
+      setError("❌ You must be logged in to create an agenda.");
       return;
     }
 
     try {
       const resp = await fetch(
-        `${API_BASE}/clusters`,
+        `${API_BASE}/agendas`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -36,7 +36,9 @@ export default function NewClusterPage() {
       );
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || resp.statusText);
-      navigate(`/clusters/${data.clusterId}`);
+
+      // ← use the new `agendaId` field
+      navigate(`/agendas/${data.agendaId}`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(`❌ ${err.message}`);
@@ -49,10 +51,10 @@ export default function NewClusterPage() {
   return (
     <div className="new-cluster-page">
       <form onSubmit={handleSubmit} className="new-cluster-form">
-        <h1>+ New Cluster</h1>
+        <h1>+ New Agenda</h1>
         {error && <div className="error">{error}</div>}
         <label>
-          Cluster title (2–3 words max):
+          Agenda title (2–3 words max):
           <input
             type="text"
             placeholder="e.g. Gaza Aid Debate"
@@ -60,7 +62,7 @@ export default function NewClusterPage() {
             onChange={(e) => setTopic(e.target.value)}
           />
         </label>
-        <button type="submit">Create Cluster</button>
+        <button type="submit">Create Agenda</button>
       </form>
     </div>
   );

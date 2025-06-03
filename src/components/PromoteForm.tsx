@@ -55,7 +55,7 @@ export default function PromoteForm() {
 
       // ניווט עם מערך ישיר של TweetIn[]
       navigate(
-        `/clusters/${agendaId || data.agendaId}/promote/results`,
+        `/agendas/${agendaId || data.agendaId}/promote/results`,
         {
           state: {
             agendaId:    agendaId || data.agendaId,

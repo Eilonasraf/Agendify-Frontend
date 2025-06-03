@@ -33,8 +33,8 @@ const Navbar = () => {
         <div className="navbar-auth">
           {user ? (
             <>
-              <Link to="/dashboard" className={`btn ${isActive("/dashboard") ? "active" : ""}`}>
-                Dashboard
+              <Link to="/agendas" className={`btn ${isActive("/agendas") ? "active" : ""}`}>
+                Agendas
               </Link>
               <Link to="/profile" className={`btn ${isActive("/profile") ? "active" : ""}`}>
                 Profile

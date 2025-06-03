@@ -107,7 +107,7 @@ export default function PromoteResultsPage() {
       return c;
     });
 
-  const goBack = () => navigate(`/clusters/${agendaId}/promote`);
+  const goBack = () => navigate(`/agendas/${agendaId}/promote`);
 
   const handlePostAllReplies = async () => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -139,7 +139,7 @@ export default function PromoteResultsPage() {
         throw new Error(err.error || resp.statusText);
       }
       setMessage("✅ All replies posted! Redirecting…");
-      setTimeout(() => navigate(`/clusters/${agendaId}`), 800);
+      setTimeout(() => navigate(`/agendas/${agendaId}`), 800);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setMessage(`❌ ${err.message}`);
