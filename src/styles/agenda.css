@@ -215,34 +215,6 @@ body {
   transform: scale(1.1);
 }
 
-/* ——— 5) “+” CIRCLE BUTTON ON EACH CARD ——— */
-.card-add-btn {
-  position: absolute;
-  bottom: -22px;
-  right: 16px; /* inside card edge */
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background-color: #ffffff;
-  border: 2px solid #6a0dad;
-  color: #6a0dad;
-  font-size: 1.4rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-  cursor: pointer;
-  transition: background 0.2s ease,
-              color 0.2s ease,
-              transform 0.2s ease,
-              border-color 0.2s ease;
-}
-
-.card-add-btn:hover {
-  color: #8d3eff;
-  border-color: #8d3eff;
-  transform: translateY(-2px);
-}
 
 /* ——— 6) “New Agenda” CARD ——— */
 .new-agenda-card {

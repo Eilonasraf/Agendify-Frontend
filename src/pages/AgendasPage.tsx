@@ -225,13 +225,6 @@ export default function AgendasPage() {
                   </button>
                 </div>
               </div>
-              <button
-                className="card-add-btn"
-                onClick={() => navigate(`/agendas/${agenda.agendaId}`)}
-                aria-label="View Agenda"
-              >
-                +
-              </button>
             </div>
           ))}
 

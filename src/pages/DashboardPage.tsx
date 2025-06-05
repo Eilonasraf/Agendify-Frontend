@@ -1,6 +1,5 @@
 // src/pages/DashboardPage.tsx
-
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   Chart as ChartJS,
@@ -61,6 +60,8 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "replies">("overview");
   const [filter, setFilter]       = useState<"all" | "replies" | "views">("all");
   const [currentSlide, setCurrentSlide] = useState(0);
+  const navigate = useNavigate();
+
 
   // ─── Fetch agenda data ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -435,7 +436,6 @@ export default function DashboardPage() {
         {/* ——— Top Bar ——— */}
         <header className="dashboard-header">
           <div>
-            <h1>Analytics Dashboard</h1>
             <p className="dashboard-subtitle">
               Agenda: <strong>{title}</strong> (Prompt: “{prompt}”)
             </p>
@@ -456,6 +456,12 @@ export default function DashboardPage() {
           >
             Replies History
           </button>
+          <button
+            className="tab"
+            onClick={() =>navigate(`/agendas/${agendaId}/promote`)}
+          >
+           Promote More
+         </button>
         </div>
 
         {/* ====== Overview Tab ====== */}

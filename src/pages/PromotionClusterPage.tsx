@@ -42,28 +42,36 @@ export default function PromotionClusterPage() {
       .finally(() => setLoading(false));
   }, [agendaId]);
 
-  if (loading) return <p>Loading cluster…</p>;
-  if (error)   return <p style={{ color: "red" }}>❌ {error}</p>;
-  if (!cluster) return <p>Cluster not found.</p>;
+  if (loading) return <p className="loading-message">Loading cluster…</p>;
+  if (error)   return <p className="error-message">❌ {error}</p>;
+  if (!cluster) return <p className="error-message">Cluster not found.</p>;
 
   return (
     <div className="cluster-page">
-      <header className="cluster-header">
-        <h1>🎯 {cluster.title}</h1>
-        <p className="prompt">Prompt: {cluster.prompt}</p>
-        <button
-          className="btn-promote-more"
-          onClick={() =>
-            navigate(`/agendas/${agendaId}/promote`, {
-              state: { agendaId, agendaTitle: cluster.title },
-            })
-          }
-        >
-          + Promote More
-        </button>
-      </header>
+      {/* Floating circles */}
+      <div className="float-circle circle1"></div>
+      <div className="float-circle circle2"></div>
+      <div className="float-circle circle3"></div>
+      <div className="float-circle circle4"></div>
 
-      {/* We removed the entire “Replies so far” section here. */}
+      {/* Centered content card */}
+      <div className="content-card">
+        <header className="cluster-header">
+          <h1>🎯 {cluster.title}</h1>
+          <p className="prompt">Prompt: {cluster.prompt}</p>
+          <button
+            className="btn-promote-more"
+            onClick={() =>
+              navigate(`/agendas/${agendaId}/promote`, {
+                state: { agendaId, agendaTitle: cluster.title },
+              })
+            }
+          >
+            + Promote More
+          </button>
+        </header>
+
+      </div>
     </div>
   );
 }
