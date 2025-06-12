@@ -1,64 +1,73 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
-
-// Public Pages
-import HomePage     from "./pages/HomePage";
-import AboutPage    from "./pages/AboutPage";
-import PricingPage  from "./pages/PricingPage";
-import LoginPage    from "./pages/LoginPage";
+import HomePage from "./pages/HomePage";
+import AboutPage from "./pages/AboutPage";
+import PricingPage from "./pages/PricingPage";
+import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-
-// Protected Pages
 import ProfilePage from "./pages/ProfilePage";
-import PromotePage   from "./pages/PromotePage";
+import AgendasPage from "./pages/AgendasPage";
+import NewClusterPage from "./pages/NewClusterPage";
+import PromotionClusterPage from "./pages/PromotionClusterPage";
+import PromoteForm from "./components/PromoteForm";
 import PromoteResultsPage from "./pages/PromoteResultsPage";
 import DashboardPage from "./pages/DashboardPage";
 
-const AppRoutes = () => {
+export default function AppRoutes() {
   const { user } = useAuth();
 
   return (
     <Routes>
-      {/* Public */}
-      <Route path="/"        element={<HomePage />} />
-      <Route path="/about"   element={<AboutPage />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/about" element={<AboutPage />} />
       <Route path="/pricing" element={<PricingPage />} />
 
-      {/* Auth */}
       <Route
         path="/login"
-        element={!user ? <LoginPage /> : <Navigate to="/dashboard" replace />}
+        element={!user ? <LoginPage /> : <Navigate to="/agendas" replace />}
       />
       <Route
         path="/register"
-        element={!user ? <RegisterPage /> : <Navigate to="/dashboard" replace />}
+        element={!user ? <RegisterPage /> : <Navigate to="/agendas" replace />}
       />
 
-      {/* Protected */}
       <Route
         path="/profile"
         element={user ? <ProfilePage /> : <Navigate to="/login" replace />}
       />
+
       <Route
-        path="/promote"
-        element={user ? <PromotePage /> : <Navigate to="/login" replace />}
+        path="/agendas"
+        element={user ? <AgendasPage /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/agendas/new"
+        element={user ? <NewClusterPage /> : <Navigate to="/login" replace />}
       />
       <Route
-        path="/dashboard"
-        element={user ? <DashboardPage /> : <Navigate to="/login" replace />}
+        path="/agendas/:agendaId"
+        element={user ? <PromotionClusterPage /> : <Navigate to="/login" replace />}
       />
       <Route
-        path="/promote/results"
+        path="/agendas/:agendaId/promote"
+        element={user ? <PromoteForm /> : <Navigate to="/login" replace />}
+      />
+
+      <Route
+        path="/agendas/:agendaId/promote/results"
         element={user ? <PromoteResultsPage /> : <Navigate to="/login" replace />}
       />
 
-      {/* Catch‑all */}
+      <Route
+      path="/agendas/:agendaId/dashboard"
+      element={<DashboardPage />}
+      />
+
       <Route
         path="*"
-        element={<Navigate to={user ? "/dashboard" : "/login"} replace />}
+        element={<Navigate to={user ? "/agendas" : "/login"} replace />}
       />
     </Routes>
   );
-};
-
-export default AppRoutes;
+}

@@ -1,178 +1,236 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import TweetEmbed from "../components/TweetEmbed";
 import "../styles/PromoteResults.css";
 
-type Tweet = {
+declare global {
+  interface Window {
+    twttr?: { widgets?: { load?: () => void } };
+  }
+}
+
+type TweetIn = {
   id: string;
   text: string;
-  responseComment?: string;
-  editedComment?: string;
-  liked?: boolean;
+  responseComment?: string | { comment?: string } | Record<string, unknown>;
 };
 
-type LocationState = {
-  tweets: Tweet[];
-  topic: string; // NEW: topic info
-};
+export default function PromoteResultsPage() {
+  const { state } = useLocation();
+  const tweets: TweetIn[] = Array.isArray(state?.tweets) ? state!.tweets! : [];
+  const agendaTitle = state?.agendaTitle ?? "";
+  const prompt = state?.prompt ?? "";
+  const agendaId = state?.agendaId ?? "";
 
-const PromoteResultsPage = () => {
-  const location = useLocation();
-  const locationState = location.state as LocationState | null;
-
-  const [editedTweets, setEditedTweets] = useState<Tweet[]>([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [editedTweets, setEditedTweets] = useState(
+    [] as {
+      id: string;
+      text: string;
+      editedComment: string;
+      liked: boolean;
+      editing: boolean;
+    }[]
+  );
+  const [message, setMessage] = useState<string | null>(null);
 
-  const topic = locationState?.topic || "Unknown Topic";
+  function unwrap(
+    r:
+      | string
+      | { comment?: unknown }
+      | Record<string, unknown>
+      | null
+      | undefined
+  ): string {
+    if (!r) return "";
+    if (typeof r === "string") return r;
+    if (r.comment !== undefined) return unwrap(r.comment);
+    const firstString = Object.values(r).find((v) => typeof v === "string");
+    return unwrap(firstString);
+  }
 
   useEffect(() => {
-    let tweetsToLoad: Tweet[] = [];
-
-    if (locationState?.tweets?.length) {
-      tweetsToLoad = locationState.tweets;
-      localStorage.setItem("promoteResults", JSON.stringify(locationState.tweets));
-    } else {
-      const stored = localStorage.getItem("promoteResults");
-      if (stored) {
-        tweetsToLoad = JSON.parse(stored);
-      }
+    if (!window.twttr) {
+      const s = document.createElement("script");
+      s.src = "https://platform.twitter.com/widgets.js";
+      s.async = true;
+      s.charset = "utf-8";
+      document.body.appendChild(s);
     }
+  }, []);
 
-    if (tweetsToLoad.length) {
-      setEditedTweets(
-        tweetsToLoad.map((tweet) => ({
-          ...tweet,
-          editedComment: tweet.responseComment || "",
-          liked: false,
-        }))
-      );
-    }
-    setLoading(false);
-  }, [locationState]);
-
-  const handleEditChange = (index: number, value: string) => {
-    const updated = [...editedTweets];
-    updated[index].editedComment = value;
-    setEditedTweets(updated);
-  };
-
-  const toggleLike = (index: number) => {
-    const updated = [...editedTweets];
-    updated[index].liked = !updated[index].liked;
-    setEditedTweets(updated);
-  };
-
-  const handlePostReply = async (tweet: Tweet) => {
-    try {
-      const response = await fetch(`/api/replies/${tweet.id}/replies`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: tweet.editedComment }),
-      });
-
-      const result: { error?: string } = await response.json();
-      if (response.ok) {
-        alert("Reply posted!");
-
-        // Save promoted reply to localStorage
-        const stored = localStorage.getItem("promotedReplies");
-        const promotedReplies = stored ? JSON.parse(stored) : [];
-
-        promotedReplies.push({
-          tweetId: tweet.id,
-          topic: topic,
-        });
-
-        localStorage.setItem("promotedReplies", JSON.stringify(promotedReplies));
-      } else {
-        alert("Failed to post: " + result.error);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      alert("Error posting reply: " + errorMessage);
-    }
-  };
-
-  const handleClearResults = () => {
-    localStorage.removeItem("promoteResults");
-    navigate("/promote-form");
-  };
-
-  if (loading) {
-    return (
-      <div className="tweet-loader">
-        <div className="spinner"></div>
-        <p>Loading tweets...</p>
-      </div>
+  useEffect(() => {
+    setEditedTweets(
+      tweets.map((t) => ({
+        id: t.id,
+        text: t.text,
+        editedComment: unwrap(t.responseComment),
+        liked: false,
+        editing: false,
+      }))
     );
-  }
+  }, [tweets]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (window.twttr?.widgets?.load) {
+        window.twttr.widgets.load();
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [editedTweets]);
+
+  const toggleLike = (i: number) =>
+    setEditedTweets((prev) => {
+      const c = [...prev];
+      c[i].liked = !c[i].liked;
+      return c;
+    });
+
+  const handleEdit = (i: number) =>
+    setEditedTweets((prev) => {
+      const c = [...prev];
+      c[i].editing = true;
+      return c;
+    });
+
+  const handleSave = (i: number) =>
+    setEditedTweets((prev) => {
+      const c = [...prev];
+      c[i].editing = false;
+      return c;
+    });
+
+  const handleChange = (i: number, v: string) =>
+    setEditedTweets((prev) => {
+      const c = [...prev];
+      c[i].editedComment = v;
+      return c;
+    });
+
+  const goBack = () => navigate(`/agendas/${agendaId}/promote`);
+
+  const handlePostAllReplies = async () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (!agendaId || !user._id) {
+      setMessage("❌ Missing agendaId or login.");
+      return;
+    }
+    try {
+      const payload = {
+        agendaId,
+        twitterUserId: user._id,
+        tweets: editedTweets.map((t) => ({
+          id: t.id,
+          responseComment: t.editedComment,
+        })),
+      };
+      const resp = await fetch(
+        `${
+          import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api"
+        }/twitter/postToX`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.error || resp.statusText);
+      }
+      setMessage("✅ All replies posted! Redirecting…");
+      setTimeout(() => navigate(`/agendas/${agendaId}`), 800);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setMessage(`❌ ${err.message}`);
+      } else {
+        setMessage("❌ An unknown error occurred.");
+      }
+    }
+  };
 
   if (!editedTweets.length) {
     return (
-      <div className="results-container text-center">
+      <div className="results-container">
         <h2>No tweets found 😢</h2>
-        <p>Try submitting a promotion again.</p>
+        <button onClick={goBack}>🔄 Start New Promotion</button>
       </div>
     );
   }
 
   return (
     <div className="results-container">
-      <h1 className="results-title">🎯 Results - Based On My Selected Agenda</h1>
-      <div className="results-actions">
-        <button className="clear-button" onClick={handleClearResults}>
-          🔄 Start New Promotion
-        </button>
-      </div>
+      <h1>🎯 “{agendaTitle}”</h1>
+      <p className="prompt">Prompt: {prompt}</p>
+      <button onClick={goBack}>🔄 Start New Promotion</button>
+
       <table className="results-table">
+        <colgroup>
+          <col style={{ width: "5%" }} />
+          <col style={{ width: "45%" }} />
+          <col style={{ width: "5%" }} />
+          <col style={{ width: "45%" }} />
+        </colgroup>
         <thead>
           <tr>
-            <th>Num</th>
+            <th>#</th>
             <th>Tweet</th>
             <th>Like?</th>
-            <th>Automatic Reply</th>
-            <th>Promote</th>
+            <th>Your Reply</th>
           </tr>
         </thead>
         <tbody>
-          {editedTweets.map((tweet, index) => (
-            <tr key={tweet.id}>
-              <td>{index + 1}</td>
+          {editedTweets.map((t, idx) => (
+            <tr key={`${t.id}-${idx}`}>
+              <td>{idx + 1}</td>
               <td>
-                <div className="tweet-embed-wrapper">
-                  <TweetEmbed tweetId={tweet.id} />
-                  <p className="tweet-text">{tweet.text}</p>
-                </div>
+                <blockquote className="twitter-tweet">
+                  <a href={`https://twitter.com/ffff/status/${t.id}`}>
+                    Loading tweet…
+                  </a>
+                </blockquote>
               </td>
               <td>
-                <button
-                  onClick={() => toggleLike(index)}
-                  className={`like-button ${tweet.liked ? "liked" : "unliked"}`}
-                >
-                  {tweet.liked ? "❤️" : "🤍"}
-                </button>
+                <span className="like-icon" onClick={() => toggleLike(idx)}>
+                  {t.liked ? "❤️" : "🤍"}
+                </span>
               </td>
               <td>
-                <textarea
-                  value={tweet.editedComment}
-                  onChange={(e) => handleEditChange(index, e.target.value)}
-                />
-              </td>
-              <td>
-                <button
-                  onClick={() => handlePostReply(tweet)}
-                  className="promote-button"
-                >
-                  Promote
-                </button>
+                {!t.editedComment?.trim() ? (
+                  <em style={{ color: "gray" }}>
+                    No comment generated by the AI.
+                  </em>
+                ) : t.editing ? (
+                  <>
+                    <textarea
+                      className="reply-textarea"
+                      value={t.editedComment}
+                      onChange={(e) => handleChange(idx, e.target.value)}
+                    />
+                    <div>
+                      <button onClick={() => handleSave(idx)}>💾 Save</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>{t.editedComment}</div>
+                    <div style={{ marginTop: "0.5rem" }}>
+                      <button onClick={() => handleEdit(idx)}>✏️ Edit</button>
+                    </div>
+                  </>
+                )}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      <div className="post-replies-wrapper">
+        <button className="post-replies-button" onClick={handlePostAllReplies}>
+          📤 Post All Replies
+        </button>
+        {message && <p className="status">{message}</p>}
+      </div>
     </div>
   );
-};
-
-export default PromoteResultsPage;
+}

@@ -1,4 +1,3 @@
-// src/pages/PromotePage.tsx
 import PromoteForm from "../components/PromoteForm";
 
 export default function PromotePage() {

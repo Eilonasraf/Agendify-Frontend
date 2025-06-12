@@ -1,0 +1,319 @@
+/* src/styles/stats.css */
+
+/* ===========================================================
+   stats.css (complete)
+   =========================================================== */
+
+/* ---------- Dashboard Main Container ---------- */
+.dashboard-main {
+  background: #f5f7fa;
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- KPI Grid ---------- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1.3rem;
+  margin-bottom: 2.2rem;
+}
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(33, 43, 54, 0.08);
+  min-height: 90px;
+}
+
+.kpi-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-right: 1.1rem;
+  color: #fff;
+  font-weight: bold;
+}
+
+.kpi-red    { background: #e74c3c; }
+.kpi-green  { background: #27ae60; }
+.kpi-yellow { background: #f1c40f; color: #212b36; }
+.kpi-blue   { background: #1976d2; }
+
+.kpi-label {
+  font-size: 0.95rem;
+  color: #7b809a;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
+.kpi-value {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #212b36;
+}
+
+/* ---------- Charts (Bar, Line) ---------- */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.chart-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(33, 43, 54, 0.08);
+  margin-bottom: 1.5rem;
+}
+
+.chart-card h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #34495e;
+}
+
+/* Pie Wrapper is reused for horizontal bar to set consistent max-width */
+.pie-wrapper {
+  flex: 1 1 180px;
+  max-width: 240px;
+}
+
+.pie-wrapper.large {
+  max-width: 500px;
+  min-width: 300px;
+  margin: 0 auto;
+  position: relative;
+  height: 360px;
+}
+
+/* Bar Wrapper */
+.bar-wrapper {
+  flex: 1 1 100%;
+  max-width: 100%;
+}
+
+/* ---------- Top Section (Line Chart, etc.) ---------- */
+.top-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.top-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 2px 8px rgba(33, 43, 54, 0.08);
+}
+
+.top-card h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #34495e;
+}
+
+/* Engagement Timeline styles */
+.engagement-timeline-card .timeline-chart-container {
+  width: 100%;
+  height: 340px;
+}
+
+/* ---------- Tabs (Overview / Replies History) ---------- */
+.dashboard-tabs {
+  margin: 1.5rem 0 1rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  background: #f5f7fa;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #34495e;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tab:hover {
+  background: #e0e4ea;
+}
+
+.tab.active {
+  background: #1976d2;
+  color: #fff;
+  border-color: #1976d2;
+}
+
+/* ---------- Replies History Table ---------- */
+.replies-history-card {
+  overflow-x: auto;
+}
+
+.top-replies-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+.top-replies-table th,
+.top-replies-table td {
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: top;
+}
+
+.top-replies-table th {
+  color: #7b809a;
+  font-size: 0.93rem;
+  font-weight: 600;
+  background: #fafbfc;
+}
+
+.top-replies-table td {
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.top-replies-table a {
+  color: #1976d2;
+  text-decoration: none;
+}
+
+.top-replies-table a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Timeline Section (if you keep it elsewhere) ---------- */
+.timeline-section {
+  margin-bottom: 2.5rem;
+}
+
+.timeline-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(33, 43, 54, 0.08);
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.timeline-card h3 {
+  margin-bottom: 1.2rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #34495e;
+}
+
+.timeline-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.timeline-dot {
+  width: 16px;
+  height: 16px;
+  background: #6a0dad;
+  border-radius: 50%;
+  margin-right: 1.2rem;
+  margin-top: 0.4rem;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 4px #f5f7fa;
+}
+
+.timeline-content {
+  flex: 1;
+}
+
+.timeline-date {
+  font-size: 0.92rem;
+  color: #7b809a;
+  margin-bottom: 0.2rem;
+}
+
+.timeline-text {
+  font-size: 1.02rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.timeline-metrics span {
+  margin-right: 1.1em;
+  font-size: 0.95em;
+  color: #34495e;
+  background: #f1f1f9;
+  border-radius: 6px;
+  padding: 0.2em 0.7em;
+  font-weight: 600;
+}
+
+/* ---------- Responsive Breakpoints ---------- */
+@media (max-width: 1200px) {
+  .dashboard-main {
+    padding: 2rem 1rem;
+  }
+}
+
+@media (max-width: 960px) {
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    min-height: 60px;
+    flex-direction: row;
+    align-items: center;
+    padding: 1rem;
+  }
+  .sidebar-header {
+    margin-bottom: 0;
+    margin-right: 2rem;
+  }
+  .sidebar nav ul {
+    display: flex;
+    gap: 1.2rem;
+  }
+  .dashboard-main {
+    padding: 1rem 0.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .kpi-grid,
+  .top-section {
+    grid-template-columns: 1fr;
+  }
+}
