@@ -116,9 +116,3 @@ App runs at `http://localhost:5173`.
 ```bash
 npm run build
 ```
-
----
-
-## Deployment
-
-Deployed on [Railway](https://railway.app). Set `VITE_API_URL` to the backend Railway URL and connect your GitHub repo for automatic deploys on push to `main`.
